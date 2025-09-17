@@ -64,30 +64,39 @@ const ConfirmationPage = () => {
 
       console.log('Sending PDF generation request with data:', JSON.stringify(passData, null, 2));
 
-      const { data, error } = await supabase.functions.invoke('download-pass', {
-        body: passData,
+      // Use direct fetch for binary response instead of supabase.functions.invoke
+      const response = await fetch(`https://kcsvkdhnglpvzdvznmfs.supabase.co/functions/v1/download-pass`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-        }
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtjc3ZrZGhuZ2xwdnpkdnpubWZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgwODg3MTYsImV4cCI6MjA3MzY2NDcxNn0.SAH-MZU3qsT1RCohG0MoLxJs3GxYY2ekmPmQMiSTH7A`,
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtjc3ZrZGhuZ2xwdnpkdnpubWZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgwODg3MTYsImV4cCI6MjA3MzY2NDcxNn0.SAH-MZU3qsT1RCohG0MoLxJs3GxYY2ekmPmQMiSTH7A',
+        },
+        body: JSON.stringify(passData),
       });
 
-      console.log('Supabase function response:', { data, error });
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
 
-      if (error) {
-        console.error('Error generating PDF:', error);
-        alert(`Failed to generate PDF: ${error.message || 'Unknown error'}. Please try again or contact support.`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Edge function error:', errorText);
+        alert(`Failed to generate PDF (${response.status}): ${errorText}. Please try again or contact support.`);
         return;
       }
 
-      // The response should be a blob for PDF
-      if (!data || !(data instanceof ArrayBuffer)) {
-        console.error('Invalid response format - expected ArrayBuffer, got:', typeof data);
-        alert('Invalid PDF response format. Please try again or contact support.');
+      // Get the PDF as an array buffer
+      const pdfData = await response.arrayBuffer();
+      console.log('PDF data received, size:', pdfData.byteLength);
+
+      if (pdfData.byteLength === 0) {
+        console.error('Empty PDF data received');
+        alert('Empty PDF received. Please try again or contact support.');
         return;
       }
 
       // Create blob from response and trigger download
-      const blob = new Blob([data], { type: 'application/pdf' });
+      const blob = new Blob([pdfData], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
