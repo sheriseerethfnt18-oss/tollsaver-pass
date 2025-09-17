@@ -12,46 +12,61 @@ import { supabase } from "@/integrations/supabase/client";
 const VisaLogo = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 40 24" fill="none">
     <rect width="40" height="24" rx="4" fill="#1A1F71"/>
-    <path d="M16.75 7.5h-2.5l-1.5 9h2.5l1.5-9zm7.75 5.75c0-2.5-3.25-2.63-3.25-3.75 0-.33.33-.68 1-.68.83 0 1.5.18 1.5.18l.25-2.25s-.75-.25-1.75-.25c-1.83 0-3.08 1-3.08 2.38 0 1.03.93 1.6 1.65 1.95.75.35 1 .58 1 .9 0 .5-.6.73-1.15.73-.95 0-1.5-.25-1.5-.25l-.28 2.25s.68.3 1.85.3c1.95 0 3.2-.95 3.2-2.43zm5-5.75h-1.93c-.6 0-1.05.35-1.28.88l-3.6 8.12h2.25l.45-1.25h2.75l.25 1.25h2l-1.9-9zm-2.25 6.25l1.13-3.13.63 3.13h-1.76zm-13.5-6.25l-2.25 9h2.25l2.25-9h-2.25z" fill="white"/>
+    <path d="M11.5 8.5l-1.2 7h1.4l1.2-7h-1.4zm3.8 0l-1.2 7h1.4l.4-2.8h1.3c1.1 0 1.8-.7 1.8-1.6 0-.9-.7-1.6-1.8-1.6h-1.9zm1.1 1.2h.5c.4 0 .7.2.7.6s-.3.6-.7.6h-.5v-1.2zm3.2-1.2l-1.8 7h1.5l.3-1.2h1.8l-.1 1.2h1.5l1.2-7h-1.5l-.4 4.5h-1.8l.4-4.5h-1.1zm5.4 0l-1.2 7h1.4l.4-2.8h1.3l-.3 2.8h1.4l1.2-7h-4.2zm1.1 1.2h1.4l-.3 2.8h-1.4l.3-2.8z" fill="white"/>
+    <text x="20" y="16.5" textAnchor="middle" fontSize="6" fontWeight="bold" fill="white">VISA</text>
   </svg>
 );
 
 const MastercardLogo = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 40 24" fill="none">
-    <rect width="40" height="24" rx="4" fill="#000"/>
-    <circle cx="15" cy="12" r="6" fill="#FF5F00"/>
-    <circle cx="25" cy="12" r="6" fill="#EB001B"/>
-    <circle cx="20" cy="12" r="6" fill="#FF5F00"/>
+    <rect width="40" height="24" rx="4" fill="white"/>
+    <circle cx="15.5" cy="12" r="7" fill="#EB001B"/>
+    <circle cx="24.5" cy="12" r="7" fill="#F79E1B"/>
+    <path d="M20 6.5c1.4 1.5 2.3 3.5 2.3 5.5s-.9 4-2.3 5.5c-1.4-1.5-2.3-3.5-2.3-5.5s.9-4 2.3-5.5z" fill="#FF5F00"/>
   </svg>
 );
 
 const AmexLogo = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 40 24" fill="none">
     <rect width="40" height="24" rx="4" fill="#006FCF"/>
-    <path d="M8 8h3l1.5 2L14 8h12v1.5h-3v1h3v1.5h-3v1h3V16H14l-1.5-2L11 16H8v-1.5h3v-1H8v-1.5h3v-1H8V8z" fill="white"/>
+    <path d="M6 10h2.5l.8 2 .8-2h2.5v4h-1.5v-2.5l-.8 1.5h-.8l-.8-1.5v2.5h-1.5v-4h-.2zm7 0h4v1h-2.5v.5h2.3v1h-2.3v.5h2.5v1h-4v-4zm5.5 0h2l1.2 1.5v-1.5h1.5v4h-1.5v-1.5l-1.2 1.5h-2l1.8-2-1.8-2zm6.5 0h1.5l.8 2 .8-2h1.5l-1.5 4h-1.1l-.5-1.2-.5 1.2h-1.1l-1.4-4z" fill="white"/>
+    <text x="20" y="18" textAnchor="middle" fontSize="4" fontWeight="bold" fill="white">AMERICAN EXPRESS</text>
   </svg>
 );
 
 const DiscoverLogo = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 40 24" fill="none">
-    <rect width="40" height="24" rx="4" fill="#FF6000"/>
-    <path d="M32 12c0 4.5-3.5 8-8 8H8c-2.2 0-4-1.8-4-4V8c0-2.2 1.8-4 4-4h16c4.5 0 8 3.5 8 8z" fill="#FF6000"/>
-    <text x="20" y="15" textAnchor="middle" className="text-xs font-bold" fill="white">DISCOVER</text>
+    <rect width="40" height="24" rx="4" fill="white"/>
+    <rect x="0" y="0" width="40" height="24" rx="4" fill="url(#discoverGrad)"/>
+    <defs>
+      <linearGradient id="discoverGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stopColor="#F47216"/>
+        <stop offset="100%" stopColor="#F47216"/>
+      </linearGradient>
+    </defs>
+    <text x="20" y="14" textAnchor="middle" fontSize="7" fontWeight="bold" fill="white">DISCOVER</text>
+    <circle cx="32" cy="12" r="8" fill="#F47216"/>
   </svg>
 );
 
 const DinersLogo = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 40 24" fill="none">
-    <rect width="40" height="24" rx="4" fill="#0079BE"/>
-    <circle cx="20" cy="12" r="8" fill="none" stroke="white" strokeWidth="2"/>
-    <text x="20" y="15" textAnchor="middle" className="text-xs font-bold" fill="white">DC</text>
+    <rect width="40" height="24" rx="4" fill="white"/>
+    <circle cx="20" cy="12" r="10" fill="none" stroke="#0079BE" strokeWidth="2"/>
+    <rect x="12" y="8" width="16" height="8" fill="#0079BE"/>
+    <text x="20" y="13.5" textAnchor="middle" fontSize="6" fontWeight="bold" fill="white">DINERS CLUB</text>
   </svg>
 );
 
 const JCBLogo = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 40 24" fill="none">
-    <rect width="40" height="24" rx="4" fill="#006FCF"/>
-    <text x="20" y="15" textAnchor="middle" className="text-xs font-bold" fill="white">JCB</text>
+    <rect width="40" height="24" rx="4" fill="white"/>
+    <rect x="2" y="6" width="8" height="12" rx="2" fill="#0E4C96"/>
+    <rect x="12" y="6" width="8" height="12" rx="2" fill="#5382C1"/>  
+    <rect x="22" y="6" width="8" height="12" rx="2" fill="#009639"/>
+    <text x="6" y="13.5" textAnchor="middle" fontSize="5" fontWeight="bold" fill="white">J</text>
+    <text x="16" y="13.5" textAnchor="middle" fontSize="5" fontWeight="bold" fill="white">C</text>
+    <text x="26" y="13.5" textAnchor="middle" fontSize="5" fontWeight="bold" fill="white">B</text>
   </svg>
 );
 
