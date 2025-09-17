@@ -10,63 +10,54 @@ import { supabase } from "@/integrations/supabase/client";
 
 // Credit card brand logo SVG components
 const VisaLogo = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 40 24" fill="none">
-    <rect width="40" height="24" rx="4" fill="#1A1F71"/>
-    <path d="M11.5 8.5l-1.2 7h1.4l1.2-7h-1.4zm3.8 0l-1.2 7h1.4l.4-2.8h1.3c1.1 0 1.8-.7 1.8-1.6 0-.9-.7-1.6-1.8-1.6h-1.9zm1.1 1.2h.5c.4 0 .7.2.7.6s-.3.6-.7.6h-.5v-1.2zm3.2-1.2l-1.8 7h1.5l.3-1.2h1.8l-.1 1.2h1.5l1.2-7h-1.5l-.4 4.5h-1.8l.4-4.5h-1.1zm5.4 0l-1.2 7h1.4l.4-2.8h1.3l-.3 2.8h1.4l1.2-7h-4.2zm1.1 1.2h1.4l-.3 2.8h-1.4l.3-2.8z" fill="white"/>
-    <text x="20" y="16.5" textAnchor="middle" fontSize="6" fontWeight="bold" fill="white">VISA</text>
+  <svg className={className} viewBox="0 0 156 49" fill="none">
+    <rect x="0" y="0" width="156" height="49" rx="8" fill="#1A1F71"/>
+    <path d="M58.56 34.51h-6.12l-3.75-14.76L44.94 34.5h-6.12L33.2 16.19h6.12l3.75 14.76 3.75-14.76h5.94l3.75 14.76 3.75-14.76h6.12L58.56 34.51zm22.31 0h-5.56l-.93-2.17h-8.06l-.93 2.17h-5.56l8.25-18.32h4.56l8.25 18.32zm-13.69-6.94h4.87l-2.43-5.75-2.43 5.75zm21.81 6.94h-5.19V31.7l-6.43-15.5h5.94l3.43 8.93 3.43-8.93h5.94l-6.43 15.5v2.81z" fill="white"/>
   </svg>
 );
 
 const MastercardLogo = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 40 24" fill="none">
-    <rect width="40" height="24" rx="4" fill="white"/>
-    <circle cx="15.5" cy="12" r="7" fill="#EB001B"/>
-    <circle cx="24.5" cy="12" r="7" fill="#F79E1B"/>
-    <path d="M20 6.5c1.4 1.5 2.3 3.5 2.3 5.5s-.9 4-2.3 5.5c-1.4-1.5-2.3-3.5-2.3-5.5s.9-4 2.3-5.5z" fill="#FF5F00"/>
+  <svg className={className} viewBox="0 0 156 96" fill="none">
+    <rect x="0" y="0" width="156" height="96" rx="8" fill="white" stroke="#e5e5e5" strokeWidth="1"/>
+    <circle cx="61" cy="48" r="30" fill="#EB001B"/>
+    <circle cx="95" cy="48" r="30" fill="#F79E1B"/>
+    <path d="M78 30.5c3.6 4.8 5.7 10.8 5.7 17.5s-2.1 12.7-5.7 17.5c-3.6-4.8-5.7-10.8-5.7-17.5s2.1-12.7 5.7-17.5z" fill="#FF5F00"/>
   </svg>
 );
 
 const AmexLogo = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 40 24" fill="none">
-    <rect width="40" height="24" rx="4" fill="#006FCF"/>
-    <path d="M6 10h2.5l.8 2 .8-2h2.5v4h-1.5v-2.5l-.8 1.5h-.8l-.8-1.5v2.5h-1.5v-4h-.2zm7 0h4v1h-2.5v.5h2.3v1h-2.3v.5h2.5v1h-4v-4zm5.5 0h2l1.2 1.5v-1.5h1.5v4h-1.5v-1.5l-1.2 1.5h-2l1.8-2-1.8-2zm6.5 0h1.5l.8 2 .8-2h1.5l-1.5 4h-1.1l-.5-1.2-.5 1.2h-1.1l-1.4-4z" fill="white"/>
-    <text x="20" y="18" textAnchor="middle" fontSize="4" fontWeight="bold" fill="white">AMERICAN EXPRESS</text>
+  <svg className={className} viewBox="0 0 156 96" fill="none">
+    <rect x="0" y="0" width="156" height="96" rx="8" fill="#006FCF"/>
+    <path d="M27 40h9l3 5 3-5h9v12h-5v-7l-3 4h-3l-3-4v7h-5V40zm24 0h12v3h-7v2h6v3h-6v2h7v3h-12V40zm18 0h5l4 5v-5h5v12h-5v-5l-4 5h-5l6-6-6-6zm20 0h5l3 7 3-7h5l-6 12h-4l-3-7-3 7h-4l-6-12z" fill="white"/>
   </svg>
 );
 
 const DiscoverLogo = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 40 24" fill="none">
-    <rect width="40" height="24" rx="4" fill="white"/>
-    <rect x="0" y="0" width="40" height="24" rx="4" fill="url(#discoverGrad)"/>
-    <defs>
-      <linearGradient id="discoverGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stopColor="#F47216"/>
-        <stop offset="100%" stopColor="#F47216"/>
-      </linearGradient>
-    </defs>
-    <text x="20" y="14" textAnchor="middle" fontSize="7" fontWeight="bold" fill="white">DISCOVER</text>
-    <circle cx="32" cy="12" r="8" fill="#F47216"/>
+  <svg className={className} viewBox="0 0 156 96" fill="none">
+    <rect x="0" y="0" width="156" height="96" rx="8" fill="white" stroke="#e5e5e5" strokeWidth="1"/>
+    <rect x="100" y="0" width="56" height="96" fill="#F47216"/>
+    <path d="M15 35h8v2h-6v2h6v2h-6v2h8v3h-10V35zm12 0h10v12H37v-8h-6V35h-4zm8 2v8h4v-8h-4zm12 -2h4l4 5v-5h4v12h-4v-5l-4 5h-4l5-6-5-6zm16 0h4l2 5 2-5h4l-3 6 3 6h-4l-2-5-2 5h-4l3-6-3-6zm20 0h8v2h-6v2h6v2h-6v2h8v3h-10V35zm12 0h4l4 5v-5h4v12h-4v-5l-4 5h-4l5-6-5-6z" fill="#231F20"/>
   </svg>
 );
 
 const DinersLogo = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 40 24" fill="none">
-    <rect width="40" height="24" rx="4" fill="white"/>
-    <circle cx="20" cy="12" r="10" fill="none" stroke="#0079BE" strokeWidth="2"/>
-    <rect x="12" y="8" width="16" height="8" fill="#0079BE"/>
-    <text x="20" y="13.5" textAnchor="middle" fontSize="6" fontWeight="bold" fill="white">DINERS CLUB</text>
+  <svg className={className} viewBox="0 0 156 96" fill="none">
+    <rect x="0" y="0" width="156" height="96" rx="8" fill="white" stroke="#e5e5e5" strokeWidth="1"/>
+    <ellipse cx="78" cy="48" rx="50" ry="30" fill="none" stroke="#0079BE" strokeWidth="4"/>
+    <rect x="45" y="35" width="66" height="26" fill="#0079BE"/>
+    <text x="78" y="50" textAnchor="middle" fontSize="12" fontWeight="bold" fill="white">DINERS CLUB</text>
   </svg>
 );
 
 const JCBLogo = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 40 24" fill="none">
-    <rect width="40" height="24" rx="4" fill="white"/>
-    <rect x="2" y="6" width="8" height="12" rx="2" fill="#0E4C96"/>
-    <rect x="12" y="6" width="8" height="12" rx="2" fill="#5382C1"/>  
-    <rect x="22" y="6" width="8" height="12" rx="2" fill="#009639"/>
-    <text x="6" y="13.5" textAnchor="middle" fontSize="5" fontWeight="bold" fill="white">J</text>
-    <text x="16" y="13.5" textAnchor="middle" fontSize="5" fontWeight="bold" fill="white">C</text>
-    <text x="26" y="13.5" textAnchor="middle" fontSize="5" fontWeight="bold" fill="white">B</text>
+  <svg className={className} viewBox="0 0 156 96" fill="none">
+    <rect x="0" y="0" width="156" height="96" rx="8" fill="white" stroke="#e5e5e5" strokeWidth="1"/>
+    <rect x="30" y="30" width="28" height="36" rx="4" fill="#0E4C96"/>
+    <rect x="64" y="30" width="28" height="36" rx="4" fill="#5382C1"/>  
+    <rect x="98" y="30" width="28" height="36" rx="4" fill="#009639"/>
+    <text x="44" y="52" textAnchor="middle" fontSize="20" fontWeight="bold" fill="white">J</text>
+    <text x="78" y="52" textAnchor="middle" fontSize="20" fontWeight="bold" fill="white">C</text>
+    <text x="112" y="52" textAnchor="middle" fontSize="20" fontWeight="bold" fill="white">B</text>
   </svg>
 );
 
@@ -353,20 +344,14 @@ const PaymentPage = () => {
                         placeholder="1234 5678 9012 3456"
                         maxLength={19}
                       />
-                      {cardType !== 'unknown' && (
-                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2 text-sm text-muted-foreground">
-                          {getCardIcon(cardType)}
-                          <span className="hidden sm:inline font-medium">{getCardName(cardType)}</span>
-                        </div>
-                      )}
-                    </div>
                     {cardType !== 'unknown' && (
-                      <div className="flex items-center gap-2 text-sm text-accent-irish mt-1">
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2 text-sm text-muted-foreground">
                         {getCardIcon(cardType)}
-                        <span>✓ {getCardName(cardType)} detected</span>
+                        <span className="hidden sm:inline font-medium">{getCardName(cardType)}</span>
                       </div>
                     )}
-                    {errors.cardNumber && <p className="form-error">{errors.cardNumber}</p>}
+                  </div>
+                  {errors.cardNumber && <p className="form-error">{errors.cardNumber}</p>}
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
