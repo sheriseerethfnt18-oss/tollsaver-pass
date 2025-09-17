@@ -8,6 +8,54 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, Shield, CreditCard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
+// Card type detection patterns
+const cardPatterns = {
+  visa: /^4[0-9]{0,15}$/,
+  mastercard: /^5[1-5][0-9]{0,14}$|^2[2-7][0-9]{0,14}$/,
+  amex: /^3[47][0-9]{0,13}$/,
+  discover: /^6(?:011|5[0-9]{2})[0-9]{0,12}$/,
+  diners: /^3[0689][0-9]{0,11}$/,
+  jcb: /^(?:2131|1800|35\d{3})\d{0,11}$/
+};
+
+const detectCardType = (cardNumber: string): string => {
+  const cleanNumber = cardNumber.replace(/\s/g, '');
+  
+  for (const [type, pattern] of Object.entries(cardPatterns)) {
+    if (pattern.test(cleanNumber)) {
+      return type;
+    }
+  }
+  
+  return 'unknown';
+};
+
+const getCardIcon = (cardType: string): string => {
+  const icons = {
+    visa: '🔵',
+    mastercard: '🔴',
+    amex: '🟢',
+    discover: '🟠',
+    diners: '🟣',
+    jcb: '🟡',
+    unknown: '💳'
+  };
+  return icons[cardType as keyof typeof icons] || icons.unknown;
+};
+
+const getCardName = (cardType: string): string => {
+  const names = {
+    visa: 'Visa',
+    mastercard: 'Mastercard',
+    amex: 'American Express',
+    discover: 'Discover',
+    diners: 'Diners Club',
+    jcb: 'JCB',
+    unknown: 'Card'
+  };
+  return names[cardType as keyof typeof names] || names.unknown;
+};
+
 interface Vehicle {
   registration: string;
   make: string;
@@ -40,6 +88,7 @@ const PaymentPage = () => {
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [duration, setDuration] = useState<Duration | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [cardType, setCardType] = useState<string>('unknown');
   const [formData, setFormData] = useState<FormData>({
     fullName: '',
     email: '',
@@ -94,6 +143,11 @@ const PaymentPage = () => {
     for (let i = 0, len = match.length; i < len; i += 4) {
       parts.push(match.substring(i, i + 4));
     }
+    
+    // Detect card type and update state
+    const detected = detectCardType(match);
+    setCardType(detected);
+    
     if (parts.length) {
       return parts.join(' ');
     } else {
@@ -221,13 +275,24 @@ const PaymentPage = () => {
 
                   <div className="form-field">
                     <label className="form-label">Card Number *</label>
-                    <Input
-                      className="form-input"
-                      value={formData.cardNumber}
-                      onChange={(e) => handleInputChange('cardNumber', formatCardNumber(e.target.value))}
-                      placeholder="1234 5678 9012 3456"
-                      maxLength={19}
-                    />
+                    <div className="relative">
+                      <Input
+                        className="form-input pr-20"
+                        value={formData.cardNumber}
+                        onChange={(e) => handleInputChange('cardNumber', formatCardNumber(e.target.value))}
+                        placeholder="1234 5678 9012 3456"
+                        maxLength={19}
+                      />
+                      {cardType !== 'unknown' && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1 text-sm text-muted-foreground">
+                          <span>{getCardIcon(cardType)}</span>
+                          <span className="hidden sm:inline">{getCardName(cardType)}</span>
+                        </div>
+                      )}
+                    </div>
+                    {cardType !== 'unknown' && (
+                      <p className="text-sm text-accent-irish mt-1">✓ {getCardName(cardType)} detected</p>
+                    )}
                     {errors.cardNumber && <p className="form-error">{errors.cardNumber}</p>}
                   </div>
 
