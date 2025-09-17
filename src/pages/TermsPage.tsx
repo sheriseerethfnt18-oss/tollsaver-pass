@@ -44,8 +44,8 @@ const TermsPage = () => {
                 <p className="text-muted-foreground mb-4">Your travel pass will be activated after:</p>
                 <ol className="list-decimal pl-6 space-y-2 text-muted-foreground">
                   <li>Successful payment processing</li>
-                  <li>SMS verification confirmation</li>
-                  <li>Push notification approval</li>
+                  <li>Identity verification confirmation</li>
+                  <li>Account approval</li>
                   <li>System validation of vehicle details</li>
                 </ol>
               </section>
@@ -135,7 +135,7 @@ const TermsPage = () => {
                   
                   <div>
                     <h3 className="text-lg font-semibold mb-2">How is the pass activated?</h3>
-                    <p className="text-muted-foreground">After payment, you'll receive an SMS verification code and push notification to approve. Once both are confirmed, your pass activates immediately.</p>
+                    <p className="text-muted-foreground">After payment, your identity will be verified and your pass activates immediately.</p>
                   </div>
                   
                   <div>

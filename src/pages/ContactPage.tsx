@@ -104,8 +104,8 @@ const ContactPage = () => {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2 text-muted-foreground">
-                    <li>• SMS verification issues</li>
-                    <li>• Push notification problems</li>
+                    <li>• Verification issues</li>
+                    <li>• Account problems</li>
                     <li>• Pass not working at toll plaza</li>
                     <li>• Vehicle registration corrections</li>
                     <li>• Pass expiration questions</li>
@@ -137,8 +137,8 @@ const ContactPage = () => {
                 <div>
                   <h3 className="font-semibold mb-3">Common Solutions</h3>
                   <ul className="space-y-2 text-muted-foreground">
-                    <li>• Check spam folder for SMS verification</li>
-                    <li>• Ensure phone has push notifications enabled</li>
+                    <li>• Check your email for verification messages</li>
+                    <li>• Ensure browser notifications are enabled</li>
                     <li>• Verify vehicle registration spelling</li>
                     <li>• Clear browser cache if payment fails</li>
                   </ul>

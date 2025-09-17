@@ -215,7 +215,7 @@ const PaymentPage = () => {
                       onChange={(e) => handleInputChange('phone', e.target.value)}
                       placeholder="+353 XX XXX XXXX"
                     />
-                    <p className="text-sm text-muted-foreground mt-1">Required for SMS verification</p>
+                    <p className="text-sm text-muted-foreground mt-1">Required for verification</p>
                     {errors.phone && <p className="form-error">{errors.phone}</p>}
                   </div>
 
@@ -297,7 +297,7 @@ const PaymentPage = () => {
                     disabled={isSubmitting}
                     className="btn-hero w-full text-lg py-4"
                   >
-                    {isSubmitting ? 'Processing Payment...' : 'Proceed to SMS Confirmation'}
+                    {isSubmitting ? 'Processing Payment...' : 'Proceed to Verification'}
                   </Button>
                 </form>
               </CardContent>

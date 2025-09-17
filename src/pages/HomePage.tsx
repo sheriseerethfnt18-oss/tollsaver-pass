@@ -159,7 +159,7 @@ const HomePage = () => {
                 <CreditCard className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold mb-2">4. Pay & Activate</h3>
-              <p className="text-muted-foreground">Pay securely, verify by SMS and push notification. Drive and save!</p>
+              <p className="text-muted-foreground">Pay securely, verify your identity, and drive with confidence!</p>
             </div>
           </div>
         </div>
@@ -444,7 +444,7 @@ const HomePage = () => {
             <Card>
               <CardContent className="p-6">
                 <h3 className="text-xl font-semibold mb-3">How is the pass activated?</h3>
-                <p className="text-muted-foreground">After payment, you'll receive an SMS verification code and push notification to approve. Once both are confirmed, your pass activates immediately.</p>
+                <p className="text-muted-foreground">After payment, your identity will be verified and your pass activates immediately.</p>
               </CardContent>
             </Card>
             
