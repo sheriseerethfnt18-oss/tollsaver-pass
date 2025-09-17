@@ -78,11 +78,22 @@ const AdminAuthPage = () => {
           }
         }
       } else {
+        // Check if any admin already exists
+        const { data: existingAdmins } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('role', 'admin')
+          .limit(1);
+
+        if (existingAdmins && existingAdmins.length > 0) {
+          setError("Admin registration is disabled. An admin account already exists.");
+          return;
+        }
+
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/admin-auth`,
             data: {
               full_name: 'Admin User',
             }
@@ -92,10 +103,28 @@ const AdminAuthPage = () => {
         if (error) throw error;
 
         if (data.user) {
+          // Create admin profile immediately
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .insert({
+              user_id: data.user.id,
+              email: data.user.email || email,
+              full_name: 'Admin User',
+              role: 'admin'
+            });
+
+          if (profileError) {
+            console.error('Error creating admin profile:', profileError);
+            throw new Error('Failed to create admin profile');
+          }
+
           toast({
             title: "Admin Account Created!",
-            description: "Please check your email to verify your account.",
+            description: "You can now sign in with your credentials.",
           });
+          
+          // Switch to login mode
+          setIsLogin(true);
         }
       }
     } catch (error: any) {
