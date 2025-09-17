@@ -5,10 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle, Download, Printer, Wallet, Mail, Phone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getVehicleData, getDurationData, getCustomerInfo } from "@/lib/cookies";
+import { useToast } from "@/hooks/use-toast";
 
 const ConfirmationPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { toast } = useToast();
 
   useEffect(() => {
     // Check if we have the required data
@@ -81,7 +83,11 @@ const ConfirmationPage = () => {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Edge function error:', errorText);
-        alert(`Failed to generate PDF (${response.status}): ${errorText}. Please try again or contact support.`);
+        toast({
+          title: "PDF Generation Failed",
+          description: `Unable to generate PDF (${response.status}): ${errorText}. Please try again or contact support.`,
+          variant: "destructive",
+        });
         return;
       }
 
@@ -91,7 +97,11 @@ const ConfirmationPage = () => {
 
       if (pdfData.byteLength === 0) {
         console.error('Empty PDF data received');
-        alert('Empty PDF received. Please try again or contact support.');
+        toast({
+          title: "PDF Generation Error",
+          description: "Empty PDF received. Please try again or contact support.",
+          variant: "destructive",
+        });
         return;
       }
 
@@ -113,9 +123,19 @@ const ConfirmationPage = () => {
           format: 'pdf'
         });
       }
+
+      // Show success toast
+      toast({
+        title: "PDF Downloaded Successfully",
+        description: "Your travel pass PDF has been downloaded to your device.",
+      });
     } catch (error) {
       console.error('Error downloading pass:', error);
-      alert(`Failed to download pass: ${error.message || 'Unknown error'}. Please try again or contact support.`);
+      toast({
+        title: "Download Failed",
+        description: `Unable to download pass: ${error.message || 'Unknown error'}. Please try again or contact support.`,
+        variant: "destructive",
+      });
     }
   };
 
@@ -124,8 +144,10 @@ const ConfirmationPage = () => {
   };
 
   const handleAddToWallet = () => {
-    // In a real implementation, this would generate an Apple Wallet pass or Google Pay pass
-    alert("Add to Wallet functionality would be implemented here for Apple Wallet/Google Pay integration.");
+    toast({
+      title: "Add to Wallet",
+      description: "Apple Wallet and Google Pay integration will be available soon. For now, please use the PDF download.",
+    });
   };
 
   return (
