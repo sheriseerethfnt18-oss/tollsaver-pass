@@ -388,9 +388,6 @@ const HomePage = () => {
             </Card>
           </div>
           
-          <p className="text-center text-sm text-muted-foreground mt-8">
-            <strong>SAMPLE testimonials</strong> — Example testimonials for demonstration. Replace with verified customer quotes.
-          </p>
         </div>
       </section>
 
