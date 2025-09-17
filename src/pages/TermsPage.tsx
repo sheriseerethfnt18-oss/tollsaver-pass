@@ -119,9 +119,9 @@ const TermsPage = () => {
               <section>
                 <h2 className="text-2xl font-semibold mb-4">Contact Information</h2>
                 <div className="bg-muted p-4 rounded-lg">
-                  <p><strong>Email:</strong> legal@travelpass.ie</p>
-                  <p><strong>Phone:</strong> +353 1 234 5678</p>
-                  <p><strong>Address:</strong> TravelPass Ireland Ltd, Dublin, Ireland</p>
+                  <p><strong>Email:</strong> legal@example.com</p>
+                  <p><strong>Phone:</strong> +1 (234) 567-8900</p>
+                  <p><strong>Address:</strong> TravelPass LLC, Your City, Your Country</p>
                 </div>
               </section>
 

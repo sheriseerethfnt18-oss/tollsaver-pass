@@ -166,7 +166,7 @@ const AdminAuthPage = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@travelpass.ie"
+                placeholder="admin@example.com"
                 required
               />
             </div>

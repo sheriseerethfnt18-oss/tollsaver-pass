@@ -96,9 +96,9 @@ const PrivacyPolicyPage = () => {
                   If you have questions about this Privacy Policy or our data practices, please contact us:
                 </p>
                 <div className="bg-muted p-4 rounded-lg mt-4">
-                  <p><strong>Email:</strong> privacy@travelpass.ie</p>
-                  <p><strong>Phone:</strong> +353 1 234 5678</p>
-                  <p><strong>Address:</strong> TravelPass Ireland Ltd, Dublin, Ireland</p>
+                  <p><strong>Email:</strong> privacy@example.com</p>
+                  <p><strong>Phone:</strong> +1 (234) 567-8900</p>
+                  <p><strong>Address:</strong> TravelPass LLC, Your City, Your Country</p>
                 </div>
               </section>
             </CardContent>

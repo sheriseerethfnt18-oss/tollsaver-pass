@@ -39,8 +39,8 @@ const Footer = () => {
             <h3 className="font-semibold text-foreground mb-4">Support</h3>
             <ul className="space-y-2">
               <li><Link to="/contact" className="text-muted-foreground hover:text-accent-irish transition-all duration-300 text-sm">Contact Us</Link></li>
-              <li><a href="mailto:support@travelpass.ie" className="text-muted-foreground hover:text-accent-irish transition-all duration-300 text-sm">support@travelpass.ie</a></li>
-              <li><a href="tel:+353123456789" className="text-muted-foreground hover:text-accent-irish transition-all duration-300 text-sm">+353 1 234 5678</a></li>
+              <li><a href="mailto:support@example.com" className="text-muted-foreground hover:text-accent-irish transition-all duration-300 text-sm">support@example.com</a></li>
+              <li><a href="tel:+1234567890" className="text-muted-foreground hover:text-accent-irish transition-all duration-300 text-sm">+1 (234) 567-8900</a></li>
             </ul>
           </div>
         </div>
