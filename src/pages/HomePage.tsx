@@ -8,13 +8,55 @@ import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/hero-motorway.jpg";
 import howItWorksImage from "@/assets/how-it-works.jpg";
 import trustBadgesImage from "@/assets/trust-badges.jpg";
+import VehicleRegistrationModal from "@/components/VehicleRegistrationModal";
 
 const HomePage = () => {
   const [vehicleReg, setVehicleReg] = useState("");
   const [vehicleFound, setVehicleFound] = useState(false);
   const [vehicleData, setVehicleData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedDuration, setSelectedDuration] = useState<any>(null);
   const navigate = useNavigate();
+
+  // Duration plans data
+  const durationPlans = [
+    {
+      days: 1,
+      label: "1 Day Pass",
+      originalPrice: 5.00,
+      discountedPrice: 3.50,
+      savings: 1.50,
+      description: "Perfect for day trips"
+    },
+    {
+      days: 7,
+      label: "7 Day Pass",
+      originalPrice: 21.43,
+      discountedPrice: 15.00,
+      savings: 6.43,
+      description: "Great for weekly travel"
+    },
+    {
+      days: 30,
+      label: "30 Day Pass",
+      originalPrice: 71.43,
+      discountedPrice: 50.00,
+      savings: 21.43,
+      description: "Best value for regular commuters"
+    }
+  ];
+
+  const handleChoosePlan = (planIndex: number) => {
+    setSelectedDuration(durationPlans[planIndex]);
+    setIsModalOpen(true);
+  };
+
+  const handleProceedToPayment = (vehicle: any, duration: any) => {
+    navigate('/payment', {
+      state: { vehicle, duration }
+    });
+  };
 
   const handleVehicleLookup = async () => {
     if (!vehicleReg) return;
@@ -277,7 +319,13 @@ const HomePage = () => {
                   <div className="price-savings">Save €1.50</div>
                 </div>
                 <p className="text-muted-foreground mb-6">Perfect for day trips</p>
-                <Button variant="outline" className="w-full">Choose Plan</Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => handleChoosePlan(0)}
+                >
+                  Choose Plan
+                </Button>
               </CardContent>
             </Card>
             
@@ -295,7 +343,12 @@ const HomePage = () => {
                   <div className="price-savings">Save €6.43</div>
                 </div>
                 <p className="text-muted-foreground mb-6">Great for weekly travel</p>
-                <Button className="btn-irish w-full">Choose Plan</Button>
+                <Button 
+                  className="btn-irish w-full"
+                  onClick={() => handleChoosePlan(1)}
+                >
+                  Choose Plan
+                </Button>
               </CardContent>
             </Card>
             
@@ -308,7 +361,13 @@ const HomePage = () => {
                   <div className="price-savings">Save €21.43</div>
                 </div>
                 <p className="text-muted-foreground mb-6">Best value for regular commuters</p>
-                <Button variant="outline" className="w-full">Choose Plan</Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => handleChoosePlan(2)}
+                >
+                  Choose Plan
+                </Button>
               </CardContent>
             </Card>
           </div>
@@ -482,6 +541,14 @@ const HomePage = () => {
           </Button>
         </div>
       </section>
+
+      {/* Vehicle Registration Modal */}
+      <VehicleRegistrationModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        duration={selectedDuration}
+        onProceedToPayment={handleProceedToPayment}
+      />
     </div>
   );
 };
