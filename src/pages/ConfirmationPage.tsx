@@ -3,6 +3,8 @@ import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle, Download, Printer, Wallet, Mail, Phone } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { getVehicleData, getDurationData, getCustomerInfo } from "@/lib/cookies";
 
 const ConfirmationPage = () => {
   const navigate = useNavigate();
@@ -27,7 +29,12 @@ const ConfirmationPage = () => {
 
   const { vehicle, duration, customerInfo, orderId, completedAt } = location.state || {};
 
-  if (!vehicle || !duration || !orderId) {
+  // Fallback to cookie data if state is missing
+  const finalVehicle = vehicle || getVehicleData();
+  const finalDuration = duration || getDurationData();
+  const finalCustomerInfo = customerInfo || getCustomerInfo();
+
+  if (!finalVehicle || !finalDuration || !orderId) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -40,13 +47,56 @@ const ConfirmationPage = () => {
     );
   }
 
-  const activationTime = new Date(completedAt);
+  const activationTime = new Date(completedAt || Date.now());
   const validUntil = new Date(activationTime);
-  validUntil.setDate(validUntil.getDate() + duration.days);
+  validUntil.setDate(validUntil.getDate() + finalDuration.days);
 
-  const handleDownloadPass = () => {
-    // In a real implementation, this would generate and download a PDF
-    alert("PDF download would start here. In production, this would generate a PDF with QR code and pass details.");
+  const handleDownloadPass = async () => {
+    try {
+      const passData = {
+        orderId,
+        vehicle: finalVehicle,
+        duration: finalDuration,
+        customerInfo: finalCustomerInfo,
+        activationDate: activationTime.toISOString(),
+        expiryDate: validUntil.toISOString()
+      };
+
+      const { data, error } = await supabase.functions.invoke('download-pass', {
+        body: passData,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (error) {
+        console.error('Error generating PDF:', error);
+        alert('Failed to generate PDF. Please try again or contact support.');
+        return;
+      }
+
+      // Create blob from response and trigger download
+      const blob = new Blob([data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `travel-pass-${orderId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(link);
+
+      // Analytics event
+      if (window.gtag) {
+        window.gtag('event', 'download_pass', {
+          order_id: orderId,
+          format: 'pdf'
+        });
+      }
+    } catch (error) {
+      console.error('Error downloading pass:', error);
+      alert('Failed to download pass. Please try again or contact support.');
+    }
   };
 
   const handlePrintPass = () => {
@@ -88,18 +138,18 @@ const ConfirmationPage = () => {
                     <p className="text-muted-foreground">Order Number</p>
                     <p className="font-semibold text-lg">{orderId}</p>
                   </div>
-                  <div>
-                    <p className="text-muted-foreground">Pass Duration</p>
-                    <p className="font-semibold">{duration.label}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Amount Charged</p>
-                    <p className="font-semibold text-accent-irish">€{duration.discountedPrice.toFixed(2)}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">You Saved</p>
-                    <p className="font-semibold text-success">€{duration.savings.toFixed(2)}</p>
-                  </div>
+                   <div>
+                     <p className="text-muted-foreground">Pass Duration</p>
+                     <p className="font-semibold">{finalDuration.label}</p>
+                   </div>
+                   <div>
+                     <p className="text-muted-foreground">Amount Charged</p>
+                     <p className="font-semibold text-accent-irish">€{finalDuration.discountedPrice.toFixed(2)}</p>
+                   </div>
+                   <div>
+                     <p className="text-muted-foreground">You Saved</p>
+                     <p className="font-semibold text-success">€{finalDuration.savings.toFixed(2)}</p>
+                   </div>
                   <div>
                     <p className="text-muted-foreground">Activated</p>
                     <p className="font-semibold">{activationTime.toLocaleString()}</p>
@@ -110,13 +160,13 @@ const ConfirmationPage = () => {
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-border">
-                  <p className="text-muted-foreground mb-2">Vehicle</p>
-                  <p className="font-semibold text-lg">
-                    {vehicle.color} {vehicle.make} {vehicle.model}
-                  </p>
-                  <p className="text-muted-foreground">Registration: {vehicle.registration}</p>
-                </div>
+                 <div className="pt-4 border-t border-border">
+                   <p className="text-muted-foreground mb-2">Vehicle</p>
+                   <p className="font-semibold text-lg">
+                     {finalVehicle.color} {finalVehicle.make} {finalVehicle.model}
+                   </p>
+                   <p className="text-muted-foreground">Registration: {finalVehicle.registration}</p>
+                 </div>
               </CardContent>
             </Card>
 
@@ -147,12 +197,12 @@ const ConfirmationPage = () => {
                   </Button>
                 </div>
 
-                <div className="pt-4 border-t border-border text-sm text-muted-foreground">
-                  <p className="mb-2">📧 <strong>Email confirmation sent to:</strong></p>
-                  <p className="mb-3">{customerInfo?.email}</p>
-                  <p className="mb-1"><strong>Subject:</strong> Your Travel Pass is Active — Order #{orderId}</p>
-                  <p>Check your email for pass details and download link.</p>
-                </div>
+                 <div className="pt-4 border-t border-border text-sm text-muted-foreground">
+                   <p className="mb-2">📧 <strong>Email confirmation sent to:</strong></p>
+                   <p className="mb-3">{finalCustomerInfo?.email || 'N/A'}</p>
+                   <p className="mb-1"><strong>Subject:</strong> Your Travel Pass is Active — Order #{orderId}</p>
+                   <p>Check your email for pass details and download link.</p>
+                 </div>
               </CardContent>
             </Card>
           </div>

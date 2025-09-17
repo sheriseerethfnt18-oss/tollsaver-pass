@@ -1,113 +1,216 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
+import jsPDF from "npm:jspdf@2.5.1";
+import QRCode from "npm:qrcode@1.5.3";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+interface PassData {
+  orderId: string;
+  vehicle: {
+    registration: string;
+    make: string;
+    model: string;
+    color: string;
+  };
+  duration: {
+    label: string;
+    days: number;
+    discountedPrice: number;
+    savings: number;
+  };
+  customerInfo: {
+    fullName: string;
+    email: string;
+  };
+  activationDate: string;
+  expiryDate: string;
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
+  if (req.method !== 'POST') {
+    return new Response('Method not allowed', { status: 405, headers: corsHeaders });
+  }
+
   try {
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const url = new URL(req.url);
-    const orderId = url.searchParams.get('orderId');
+    const passData: PassData = await req.json();
 
-    if (!orderId) {
-      return new Response('Order ID required', { status: 400 });
+    if (!passData.orderId || !passData.vehicle || !passData.duration) {
+      return new Response('Missing required pass data', { 
+        status: 400, 
+        headers: corsHeaders 
+      });
     }
 
-    // Get order details
-    const { data: order, error } = await supabase
-      .from('orders')
-      .select('*')
-      .eq('order_id', orderId)
-      .single();
+    console.log('Generating PDF for order:', passData.orderId);
 
-    if (error || !order) {
-      return new Response('Order not found', { status: 404 });
-    }
+    // Generate QR code data URL
+    const qrData = JSON.stringify({
+      orderId: passData.orderId,
+      registration: passData.vehicle.registration,
+      expires: passData.expiryDate
+    });
+    
+    const qrCodeDataURL = await QRCode.toDataURL(qrData, {
+      width: 200,
+      margin: 2,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF'
+      }
+    });
 
-    if (order.status !== 'completed') {
-      return new Response('Order not completed', { status: 400 });
-    }
+    // Create PDF
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
 
-    // Generate simple PDF content (in production, use a proper PDF library)
-    const pdfContent = generatePassPDF(order);
+    // Set up the PDF styling
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    
+    // Add green background header
+    pdf.setFillColor(34, 139, 34); // Green color
+    pdf.rect(0, 0, pageWidth, 40, 'F');
+    
+    // Add title
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFontSize(24);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('IRISH TRAVEL PASS', pageWidth / 2, 25, { align: 'center' });
+    
+    // Reset text color for body
+    pdf.setTextColor(0, 0, 0);
+    
+    // Add pass details section
+    let yPos = 60;
+    
+    // Order information
+    pdf.setFontSize(16);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Pass Details', 20, yPos);
+    
+    yPos += 15;
+    pdf.setFontSize(12);
+    pdf.setFont(undefined, 'normal');
+    
+    // Order ID
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Order Number:', 20, yPos);
+    pdf.setFont(undefined, 'normal');
+    pdf.text(passData.orderId, 70, yPos);
+    
+    yPos += 10;
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Pass Type:', 20, yPos);
+    pdf.setFont(undefined, 'normal');
+    pdf.text(passData.duration.label, 70, yPos);
+    
+    yPos += 10;
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Amount Paid:', 20, yPos);
+    pdf.setFont(undefined, 'normal');
+    pdf.text(`€${passData.duration.discountedPrice.toFixed(2)}`, 70, yPos);
+    
+    yPos += 10;
+    pdf.setFont(undefined, 'bold');
+    pdf.text('You Saved:', 20, yPos);
+    pdf.setFont(undefined, 'normal');
+    pdf.setTextColor(34, 139, 34);
+    pdf.text(`€${passData.duration.savings.toFixed(2)}`, 70, yPos);
+    pdf.setTextColor(0, 0, 0);
+    
+    yPos += 20;
+    
+    // Vehicle information
+    pdf.setFontSize(16);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Vehicle Information', 20, yPos);
+    
+    yPos += 15;
+    pdf.setFontSize(12);
+    pdf.setFont(undefined, 'normal');
+    
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Registration:', 20, yPos);
+    pdf.setFont(undefined, 'normal');
+    pdf.text(passData.vehicle.registration, 70, yPos);
+    
+    yPos += 10;
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Vehicle:', 20, yPos);
+    pdf.setFont(undefined, 'normal');
+    pdf.text(`${passData.vehicle.color} ${passData.vehicle.make} ${passData.vehicle.model}`, 70, yPos);
+    
+    yPos += 20;
+    
+    // Validity information
+    pdf.setFontSize(16);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Validity Period', 20, yPos);
+    
+    yPos += 15;
+    pdf.setFontSize(12);
+    pdf.setFont(undefined, 'normal');
+    
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Activated:', 20, yPos);
+    pdf.setFont(undefined, 'normal');
+    pdf.text(new Date(passData.activationDate).toLocaleDateString(), 70, yPos);
+    
+    yPos += 10;
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Expires:', 20, yPos);
+    pdf.setFont(undefined, 'normal');
+    pdf.text(new Date(passData.expiryDate).toLocaleDateString(), 70, yPos);
+    
+    // Add QR code
+    pdf.addImage(qrCodeDataURL, 'PNG', pageWidth - 60, 60, 40, 40);
+    
+    // Add QR code label
+    pdf.setFontSize(10);
+    pdf.text('Scan for verification', pageWidth - 60, 110, { align: 'center', maxWidth: 40 });
+    
+    // Add footer with terms
+    pdf.setFontSize(10);
+    pdf.setTextColor(128, 128, 128);
+    const footerY = pageHeight - 30;
+    
+    pdf.text('Terms & Conditions:', 20, footerY);
+    pdf.text('• Valid on all Irish toll roads during the specified period', 20, footerY + 5);
+    pdf.text('• Non-transferable and valid only for the registered vehicle', 20, footerY + 10);
+    pdf.text('• Keep this pass with you while traveling', 20, footerY + 15);
+    pdf.text('• For support: support@travel-pass.live | 0818 501 050', 20, footerY + 20);
+    
+    // Generate PDF as buffer
+    const pdfBuffer = pdf.output('arraybuffer');
 
-    return new Response(pdfContent, {
+    return new Response(pdfBuffer, {
+      status: 200,
       headers: {
         ...corsHeaders,
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="travel-pass-${order.order_id}.pdf"`,
+        'Content-Disposition': `attachment; filename="travel-pass-${passData.orderId}.pdf"`,
+        'Content-Length': pdfBuffer.byteLength.toString(),
       },
     });
 
   } catch (error) {
-    console.error('Error generating pass:', error);
-    return new Response('Internal server error', { status: 500 });
+    console.error('Error generating PDF:', error);
+    return new Response(
+      JSON.stringify({ error: 'Failed to generate PDF' }), 
+      { 
+        status: 500, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    );
   }
 });
-
-function generatePassPDF(order: any): string {
-  // This is a simplified PDF generation. In production, use a proper PDF library like jsPDF
-  const pdfHeader = `%PDF-1.4
-1 0 obj
-<< /Type /Catalog /Pages 2 0 R >>
-endobj
-
-2 0 obj
-<< /Type /Pages /Kids [3 0 R] /Count 1 >>
-endobj
-
-3 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>
-endobj
-
-4 0 obj
-<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
-endobj
-
-5 0 obj
-<< /Length 200 >>
-stream
-BT
-/F1 12 Tf
-72 720 Td
-(TRAVEL PASS - ORDER #${order.order_id}) Tj
-0 -20 Td
-(Vehicle: ${order.vehicle_color} ${order.vehicle_make} ${order.vehicle_model}) Tj
-0 -20 Td
-(Registration: ${order.vehicle_registration}) Tj
-0 -20 Td
-(Duration: ${order.duration_label}) Tj
-0 -20 Td
-(Valid until: ${new Date(order.expires_at).toLocaleDateString()}) Tj
-0 -20 Td
-(Amount paid: €${order.discounted_price}) Tj
-ET
-endstream
-endobj
-
-xref
-0 6
-0000000000 65535 f 
-0000000010 00000 n 
-0000000053 00000 n 
-0000000110 00000 n 
-0000000252 00000 n 
-0000000317 00000 n 
-trailer
-<< /Size 6 /Root 1 0 R >>
-startxref
-567
-%%EOF`;
-
-  return pdfHeader;
-}
