@@ -92,20 +92,6 @@ const AdminAuthPage = () => {
         if (error) throw error;
 
         if (data.user) {
-          // Create admin profile immediately
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .insert({
-              user_id: data.user.id,
-              email: data.user.email || email,
-              full_name: 'Admin User',
-              role: 'admin'
-            });
-
-          if (profileError) {
-            console.error('Error creating admin profile:', profileError);
-          }
-
           toast({
             title: "Admin Account Created!",
             description: "Please check your email to verify your account.",
