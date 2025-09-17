@@ -168,8 +168,8 @@ const ConfirmationPage = () => {
                   <Mail className="w-8 h-8 text-accent-irish mx-auto mb-2" />
                   <h3 className="font-semibold mb-1">Email Support</h3>
                   <p className="text-sm text-muted-foreground mb-2">Get help via email</p>
-                  <a href="mailto:support@example.com" className="text-accent-irish hover:underline text-sm">
-                    support@example.com
+                  <a href="mailto:support@travel-pass.live" className="text-accent-irish hover:underline text-sm">
+                    support@travel-pass.live
                   </a>
                 </div>
                 
@@ -177,8 +177,8 @@ const ConfirmationPage = () => {
                   <Phone className="w-8 h-8 text-accent-irish mx-auto mb-2" />
                   <h3 className="font-semibold mb-1">Phone Support</h3>
                   <p className="text-sm text-muted-foreground mb-2">Mon-Fri 9AM-6PM</p>
-                  <a href="tel:+1234567890" className="text-accent-irish hover:underline text-sm">
-                    +1 (234) 567-8900
+                  <a href="tel:0818501050" className="text-accent-irish hover:underline text-sm">
+                    0818 501 050
                   </a>
                 </div>
                 

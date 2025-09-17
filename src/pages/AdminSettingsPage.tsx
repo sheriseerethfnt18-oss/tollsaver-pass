@@ -218,7 +218,7 @@ const AdminSettingsPage = () => {
                     type="email"
                     value={appSettings.support_email}
                     onChange={(e) => setAppSettings(prev => ({ ...prev, support_email: e.target.value }))}
-                    placeholder="support@example.com"
+                    placeholder="support@travel-pass.live"
                   />
                 </div>
                 
@@ -228,7 +228,7 @@ const AdminSettingsPage = () => {
                     id="support_phone"
                     value={appSettings.support_phone}
                     onChange={(e) => setAppSettings(prev => ({ ...prev, support_phone: e.target.value }))}
-                    placeholder="+1 (234) 567-8900"
+                    placeholder="0818 501 050"
                   />
                 </div>
 
@@ -301,7 +301,7 @@ const AdminSettingsPage = () => {
                       type="email"
                       value={smtpSettings.from_email}
                       onChange={(e) => setSmtpSettings(prev => ({ ...prev, from_email: e.target.value }))}
-                      placeholder="noreply@example.com"
+                      placeholder="noreply@travel-pass.live"
                     />
                   </div>
                   

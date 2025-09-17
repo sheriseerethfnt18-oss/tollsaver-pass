@@ -169,8 +169,8 @@ const RefundPolicyPage = () => {
                       <Mail className="w-8 h-8 text-accent-irish mx-auto mb-2" />
                       <h3 className="font-semibold mb-2">Email Support</h3>
                       <p className="text-sm text-muted-foreground mb-2">Fastest response time</p>
-                      <a href="mailto:refunds@example.com" className="text-accent-irish hover:underline">
-                        refunds@example.com
+                      <a href="mailto:refunds@travel-pass.live" className="text-accent-irish hover:underline">
+                        refunds@travel-pass.live
                       </a>
                       <p className="text-xs text-muted-foreground mt-1">
                         Include your order number
@@ -183,8 +183,8 @@ const RefundPolicyPage = () => {
                       <Phone className="w-8 h-8 text-accent-irish mx-auto mb-2" />
                       <h3 className="font-semibold mb-2">Phone Support</h3>
                       <p className="text-sm text-muted-foreground mb-2">Mon-Fri 9AM-6PM</p>
-                      <a href="tel:+1234567890" className="text-accent-irish hover:underline">
-                        +1 (234) 567-8900
+                      <a href="tel:0818501050" className="text-accent-irish hover:underline">
+                        0818 501 050
                       </a>
                       <p className="text-xs text-muted-foreground mt-1">
                         Have your order number ready

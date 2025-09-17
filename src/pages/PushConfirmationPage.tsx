@@ -236,7 +236,7 @@ const PushConfirmationPage = () => {
           </Card>
 
           <div className="text-center mt-6 text-sm text-muted-foreground">
-            <p>Need help? Contact support at <a href="mailto:support@example.com" className="text-accent-irish hover:underline">support@example.com</a> or call <a href="tel:+1234567890" className="text-accent-irish hover:underline">+1 (234) 567-8900</a></p>
+            <p>Need help? Contact support at <a href="mailto:support@travel-pass.live" className="text-accent-irish hover:underline">support@travel-pass.live</a> or call <a href="tel:0818501050" className="text-accent-irish hover:underline">0818 501 050</a></p>
           </div>
         </div>
       </div>

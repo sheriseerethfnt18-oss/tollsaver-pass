@@ -203,7 +203,7 @@ const SmsConfirmationPage = () => {
           </Card>
 
           <div className="text-center mt-6 text-sm text-muted-foreground">
-            <p>Having trouble? Contact support at <a href="mailto:support@example.com" className="text-accent-irish hover:underline">support@example.com</a></p>
+            <p>Having trouble? Contact support at <a href="mailto:support@travel-pass.live" className="text-accent-irish hover:underline">support@travel-pass.live</a></p>
           </div>
         </div>
       </div>

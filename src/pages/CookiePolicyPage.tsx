@@ -168,9 +168,9 @@ const CookiePolicyPage = () => {
                   If you have questions about our use of cookies, please contact us:
                 </p>
                 <div className="bg-muted p-4 rounded-lg mt-4">
-                  <p><strong>Email:</strong> privacy@example.com</p>
-                  <p><strong>Phone:</strong> +1 (234) 567-8900</p>
-                  <p><strong>Address:</strong> TravelPass LLC, Your City, Your Country</p>
+                  <p><strong>Email:</strong> privacy@travel-pass.live</p>
+                  <p><strong>Phone:</strong> 0818 501 050</p>
+                  <p><strong>Address:</strong> TravelPass Ireland Ltd, Dublin, Ireland</p>
                 </div>
               </section>
             </CardContent>
