@@ -39,13 +39,54 @@ serve(async (req) => {
   }
 
   try {
-    const passData: PassData = await req.json();
+    console.log('PDF generation request received');
+    console.log('Request method:', req.method);
+    console.log('Request headers:', Object.fromEntries(req.headers.entries()));
+    
+    // Get the request body as text first to debug
+    const rawBody = await req.text();
+    console.log('Raw request body:', rawBody);
+    
+    if (!rawBody || rawBody.trim() === '') {
+      console.error('Empty request body received');
+      return new Response(
+        JSON.stringify({ error: 'Empty request body' }), 
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // Parse the JSON
+    let passData: PassData;
+    try {
+      passData = JSON.parse(rawBody);
+      console.log('Parsed pass data:', JSON.stringify(passData, null, 2));
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON in request body' }), 
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
 
     if (!passData.orderId || !passData.vehicle || !passData.duration) {
-      return new Response('Missing required pass data', { 
-        status: 400, 
-        headers: corsHeaders 
+      console.error('Missing required fields:', {
+        hasOrderId: !!passData.orderId,
+        hasVehicle: !!passData.vehicle,
+        hasDuration: !!passData.duration
       });
+      return new Response(
+        JSON.stringify({ error: 'Missing required pass data' }), 
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     console.log('Generating PDF for order:', passData.orderId);
@@ -57,6 +98,7 @@ serve(async (req) => {
       expires: passData.expiryDate
     });
     
+    console.log('Generating QR code...');
     const qrCodeDataURL = await QRCode.toDataURL(qrData, {
       width: 200,
       margin: 2,
@@ -66,6 +108,7 @@ serve(async (req) => {
       }
     });
 
+    console.log('Creating PDF document...');
     // Create PDF
     const pdf = new jsPDF({
       orientation: 'portrait',
@@ -173,6 +216,7 @@ serve(async (req) => {
     pdf.text(new Date(passData.expiryDate).toLocaleDateString(), 70, yPos);
     
     // Add QR code
+    console.log('Adding QR code to PDF...');
     pdf.addImage(qrCodeDataURL, 'PNG', pageWidth - 60, 60, 40, 40);
     
     // Add QR code label
@@ -190,8 +234,10 @@ serve(async (req) => {
     pdf.text('• Keep this pass with you while traveling', 20, footerY + 15);
     pdf.text('• For support: support@travel-pass.live | 0818 501 050', 20, footerY + 20);
     
+    console.log('Generating PDF buffer...');
     // Generate PDF as buffer
     const pdfBuffer = pdf.output('arraybuffer');
+    console.log('PDF generated successfully, size:', pdfBuffer.byteLength);
 
     return new Response(pdfBuffer, {
       status: 200,
@@ -205,8 +251,9 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error generating PDF:', error);
+    console.error('Error stack:', error.stack);
     return new Response(
-      JSON.stringify({ error: 'Failed to generate PDF' }), 
+      JSON.stringify({ error: 'Failed to generate PDF', details: error.message }), 
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

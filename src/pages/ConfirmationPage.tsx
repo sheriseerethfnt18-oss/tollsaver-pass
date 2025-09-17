@@ -62,6 +62,8 @@ const ConfirmationPage = () => {
         expiryDate: validUntil.toISOString()
       };
 
+      console.log('Sending PDF generation request with data:', JSON.stringify(passData, null, 2));
+
       const { data, error } = await supabase.functions.invoke('download-pass', {
         body: passData,
         headers: {
@@ -69,9 +71,18 @@ const ConfirmationPage = () => {
         }
       });
 
+      console.log('Supabase function response:', { data, error });
+
       if (error) {
         console.error('Error generating PDF:', error);
-        alert('Failed to generate PDF. Please try again or contact support.');
+        alert(`Failed to generate PDF: ${error.message || 'Unknown error'}. Please try again or contact support.`);
+        return;
+      }
+
+      // The response should be a blob for PDF
+      if (!data || !(data instanceof ArrayBuffer)) {
+        console.error('Invalid response format - expected ArrayBuffer, got:', typeof data);
+        alert('Invalid PDF response format. Please try again or contact support.');
         return;
       }
 
@@ -95,7 +106,7 @@ const ConfirmationPage = () => {
       }
     } catch (error) {
       console.error('Error downloading pass:', error);
-      alert('Failed to download pass. Please try again or contact support.');
+      alert(`Failed to download pass: ${error.message || 'Unknown error'}. Please try again or contact support.`);
     }
   };
 
