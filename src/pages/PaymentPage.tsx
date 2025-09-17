@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Shield, CreditCard } from "lucide-react";
+import { ArrowLeft, Shield, CreditCard, Banknote, Wallet, DollarSign } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 // Card type detection patterns
@@ -30,17 +30,25 @@ const detectCardType = (cardNumber: string): string => {
   return 'unknown';
 };
 
-const getCardIcon = (cardType: string): string => {
-  const icons = {
-    visa: '🔵',
-    mastercard: '🔴',
-    amex: '🟢',
-    discover: '🟠',
-    diners: '🟣',
-    jcb: '🟡',
-    unknown: '💳'
-  };
-  return icons[cardType as keyof typeof icons] || icons.unknown;
+const getCardIcon = (cardType: string) => {
+  const iconProps = { className: "w-5 h-5" };
+  
+  switch (cardType) {
+    case 'visa':
+      return <CreditCard {...iconProps} className="w-5 h-5 text-blue-600" />;
+    case 'mastercard':
+      return <CreditCard {...iconProps} className="w-5 h-5 text-red-600" />;
+    case 'amex':
+      return <Wallet {...iconProps} className="w-5 h-5 text-green-600" />;
+    case 'discover':
+      return <Banknote {...iconProps} className="w-5 h-5 text-orange-600" />;
+    case 'diners':
+      return <DollarSign {...iconProps} className="w-5 h-5 text-purple-600" />;
+    case 'jcb':
+      return <CreditCard {...iconProps} className="w-5 h-5 text-yellow-600" />;
+    default:
+      return <CreditCard {...iconProps} className="w-5 h-5 text-muted-foreground" />;
+  }
 };
 
 const getCardName = (cardType: string): string => {
@@ -284,14 +292,17 @@ const PaymentPage = () => {
                         maxLength={19}
                       />
                       {cardType !== 'unknown' && (
-                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1 text-sm text-muted-foreground">
-                          <span>{getCardIcon(cardType)}</span>
-                          <span className="hidden sm:inline">{getCardName(cardType)}</span>
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2 text-sm text-muted-foreground">
+                          {getCardIcon(cardType)}
+                          <span className="hidden sm:inline font-medium">{getCardName(cardType)}</span>
                         </div>
                       )}
                     </div>
                     {cardType !== 'unknown' && (
-                      <p className="text-sm text-accent-irish mt-1">✓ {getCardName(cardType)} detected</p>
+                      <div className="flex items-center gap-2 text-sm text-accent-irish mt-1">
+                        {getCardIcon(cardType)}
+                        <span>✓ {getCardName(cardType)} detected</span>
+                      </div>
                     )}
                     {errors.cardNumber && <p className="form-error">{errors.cardNumber}</p>}
                   </div>
