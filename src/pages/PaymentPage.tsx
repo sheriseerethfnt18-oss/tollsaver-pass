@@ -5,8 +5,55 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Shield, CreditCard, Banknote, Wallet, DollarSign } from "lucide-react";
+import { ArrowLeft, Shield, CreditCard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+
+// Credit card brand logo SVG components
+const VisaLogo = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 40 24" fill="none">
+    <rect width="40" height="24" rx="4" fill="#1A1F71"/>
+    <path d="M16.75 7.5h-2.5l-1.5 9h2.5l1.5-9zm7.75 5.75c0-2.5-3.25-2.63-3.25-3.75 0-.33.33-.68 1-.68.83 0 1.5.18 1.5.18l.25-2.25s-.75-.25-1.75-.25c-1.83 0-3.08 1-3.08 2.38 0 1.03.93 1.6 1.65 1.95.75.35 1 .58 1 .9 0 .5-.6.73-1.15.73-.95 0-1.5-.25-1.5-.25l-.28 2.25s.68.3 1.85.3c1.95 0 3.2-.95 3.2-2.43zm5-5.75h-1.93c-.6 0-1.05.35-1.28.88l-3.6 8.12h2.25l.45-1.25h2.75l.25 1.25h2l-1.9-9zm-2.25 6.25l1.13-3.13.63 3.13h-1.76zm-13.5-6.25l-2.25 9h2.25l2.25-9h-2.25z" fill="white"/>
+  </svg>
+);
+
+const MastercardLogo = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 40 24" fill="none">
+    <rect width="40" height="24" rx="4" fill="#000"/>
+    <circle cx="15" cy="12" r="6" fill="#FF5F00"/>
+    <circle cx="25" cy="12" r="6" fill="#EB001B"/>
+    <circle cx="20" cy="12" r="6" fill="#FF5F00"/>
+  </svg>
+);
+
+const AmexLogo = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 40 24" fill="none">
+    <rect width="40" height="24" rx="4" fill="#006FCF"/>
+    <path d="M8 8h3l1.5 2L14 8h12v1.5h-3v1h3v1.5h-3v1h3V16H14l-1.5-2L11 16H8v-1.5h3v-1H8v-1.5h3v-1H8V8z" fill="white"/>
+  </svg>
+);
+
+const DiscoverLogo = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 40 24" fill="none">
+    <rect width="40" height="24" rx="4" fill="#FF6000"/>
+    <path d="M32 12c0 4.5-3.5 8-8 8H8c-2.2 0-4-1.8-4-4V8c0-2.2 1.8-4 4-4h16c4.5 0 8 3.5 8 8z" fill="#FF6000"/>
+    <text x="20" y="15" textAnchor="middle" className="text-xs font-bold" fill="white">DISCOVER</text>
+  </svg>
+);
+
+const DinersLogo = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 40 24" fill="none">
+    <rect width="40" height="24" rx="4" fill="#0079BE"/>
+    <circle cx="20" cy="12" r="8" fill="none" stroke="white" strokeWidth="2"/>
+    <text x="20" y="15" textAnchor="middle" className="text-xs font-bold" fill="white">DC</text>
+  </svg>
+);
+
+const JCBLogo = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 40 24" fill="none">
+    <rect width="40" height="24" rx="4" fill="#006FCF"/>
+    <text x="20" y="15" textAnchor="middle" className="text-xs font-bold" fill="white">JCB</text>
+  </svg>
+);
 
 // Card type detection patterns
 const cardPatterns = {
@@ -31,23 +78,23 @@ const detectCardType = (cardNumber: string): string => {
 };
 
 const getCardIcon = (cardType: string) => {
-  const iconProps = { className: "w-5 h-5" };
+  const className = "w-8 h-5";
   
   switch (cardType) {
     case 'visa':
-      return <CreditCard {...iconProps} className="w-5 h-5 text-blue-600" />;
+      return <VisaLogo className={className} />;
     case 'mastercard':
-      return <CreditCard {...iconProps} className="w-5 h-5 text-red-600" />;
+      return <MastercardLogo className={className} />;
     case 'amex':
-      return <Wallet {...iconProps} className="w-5 h-5 text-green-600" />;
+      return <AmexLogo className={className} />;
     case 'discover':
-      return <Banknote {...iconProps} className="w-5 h-5 text-orange-600" />;
+      return <DiscoverLogo className={className} />;
     case 'diners':
-      return <DollarSign {...iconProps} className="w-5 h-5 text-purple-600" />;
+      return <DinersLogo className={className} />;
     case 'jcb':
-      return <CreditCard {...iconProps} className="w-5 h-5 text-yellow-600" />;
+      return <JCBLogo className={className} />;
     default:
-      return <CreditCard {...iconProps} className="w-5 h-5 text-muted-foreground" />;
+      return <CreditCard className="w-5 h-5 text-muted-foreground" />;
   }
 };
 
