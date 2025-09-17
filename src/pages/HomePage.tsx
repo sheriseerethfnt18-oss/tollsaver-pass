@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import heroImage from "@/assets/hero-motorway.jpg";
 import howItWorksImage from "@/assets/how-it-works.jpg";
 import trustBadgesImage from "@/assets/trust-badges.jpg";
 import VehicleRegistrationModal from "@/components/VehicleRegistrationModal";
+import { saveVehicleData, saveDurationData, getVehicleData, getDurationData, clearAllCheckoutData } from "@/lib/cookies";
 
 const HomePage = () => {
   const [vehicleReg, setVehicleReg] = useState("");
@@ -18,6 +19,11 @@ const HomePage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDuration, setSelectedDuration] = useState<any>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Clear any existing checkout data when starting fresh
+    clearAllCheckoutData();
+  }, []);
 
   // Duration plans data
   const durationPlans = [
@@ -53,6 +59,10 @@ const HomePage = () => {
   };
 
   const handleProceedToPayment = (vehicle: any, duration: any) => {
+    // Save data to cookies
+    saveVehicleData(vehicle);
+    saveDurationData(duration);
+    
     navigate('/payment', {
       state: { vehicle, duration }
     });
@@ -78,6 +88,16 @@ const HomePage = () => {
       if (data.success && data.vehicle) {
         setVehicleFound(true);
         setVehicleData(data.vehicle);
+        
+        // Save vehicle data to cookies
+        const vehicleInfo = {
+          registration: data.vehicle.registration || vehicleReg.toUpperCase(),
+          make: data.vehicle.make || '',
+          model: data.vehicle.model || '',
+          color: data.vehicle.color || '',
+          engineCapacity: data.vehicle.engineCapacity
+        };
+        saveVehicleData(vehicleInfo);
         
         // Analytics event
         if (window.gtag) {
@@ -106,15 +126,18 @@ const HomePage = () => {
       });
     }
     
+    const vehicleInfo = {
+      registration: vehicleData?.registration || vehicleReg.toUpperCase(),
+      make: vehicleData?.make || '',
+      model: vehicleData?.model || '',
+      color: vehicleData?.color || '',
+      engineCapacity: vehicleData?.engineCapacity
+    };
+    
+    // Save to cookies and navigate
+    saveVehicleData(vehicleInfo);
     navigate('/duration', { 
-      state: { 
-        vehicle: {
-          registration: vehicleData?.registration || vehicleReg.toUpperCase(),
-          make: vehicleData?.make || '',
-          model: vehicleData?.model || '',
-          color: vehicleData?.color || ''
-        }
-      }
+      state: { vehicle: vehicleInfo }
     });
   };
 

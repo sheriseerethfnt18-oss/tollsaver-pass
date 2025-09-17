@@ -5,22 +5,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { CheckCircle, ArrowLeft } from "lucide-react";
+import { saveVehicleData, saveDurationData, getVehicleData, getDurationData, Vehicle, Duration } from "@/lib/cookies";
 
-interface Vehicle {
-  registration: string;
-  make: string;
-  model: string;
-  color: string;
-}
-
-interface Duration {
-  days: number;
-  label: string;
-  originalPrice: number;
-  discountedPrice: number;
-  savings: number;
-  popular?: boolean;
-}
+// Vehicle and Duration interfaces are now imported from cookies.ts
 
 const DurationPage = () => {
   const navigate = useNavigate();
@@ -54,10 +41,13 @@ const DurationPage = () => {
   ];
 
   useEffect(() => {
-    // Get vehicle data from navigation state
-    const vehicleData = location.state?.vehicle;
+    // Try to get vehicle data from navigation state first, then cookies
+    const vehicleData = location.state?.vehicle || getVehicleData();
+    
     if (vehicleData) {
       setVehicle(vehicleData);
+      // Ensure data is saved to cookies
+      saveVehicleData(vehicleData);
     } else {
       // Redirect to homepage if no vehicle data
       navigate('/');
@@ -68,6 +58,11 @@ const DurationPage = () => {
     if (!selectedDuration || !vehicle) return;
 
     const selectedDurationData = durations.find(d => d.days.toString() === selectedDuration);
+    
+    if (selectedDurationData) {
+      // Save duration data to cookies
+      saveDurationData(selectedDurationData);
+    }
     
     if (window.gtag) {
       window.gtag('event', 'duration_selected', {
