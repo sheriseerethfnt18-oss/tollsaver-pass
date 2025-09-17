@@ -13,17 +13,17 @@ fi
 echo "Building project..."
 npm run build
 
-# Create www directory
-echo "Creating www directory..."
-mkdir -p www
+# Create builded directory
+echo "Creating builded directory..."
+mkdir -p builded
 
-# Copy build files to www
-echo "Copying files to www..."
-cp -r dist/* www/
+# Copy build files to builded
+echo "Copying files to builded..."
+cp -r dist/* builded/
 
-# Create a simple index file for the www directory
-echo "Creating www/README.md..."
-cat > www/README.md << 'EOF'
+# Create a simple index file for the builded directory
+echo "Creating builded/README.md..."
+cat > builded/README.md << 'EOF'
 # TravelPass Static Build
 
 This directory contains the compiled static files for the TravelPass application.
@@ -44,7 +44,7 @@ These files can be deployed to any static hosting service:
 ## Last Build:
 EOF
 
-echo "$(date)" >> www/README.md
+echo "$(date)" >> builded/README.md
 
-echo "Static build complete! Files are in the 'www' directory."
-echo "You can now commit and push the www folder to GitHub."
+echo "Static build complete! Files are in the 'builded' directory."
+echo "You can now commit and push the builded folder to GitHub."
