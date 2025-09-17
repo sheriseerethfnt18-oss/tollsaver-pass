@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, Shield, Clock, CreditCard, MapPin, Car, Users, Star } from "lucide-react";
+import { CheckCircle, Shield, Clock, CreditCard, MapPin, Car, Users, Star, Search, CheckCircle2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/hero-motorway.jpg";
 import howItWorksImage from "@/assets/how-it-works.jpg";
 import trustBadgesImage from "@/assets/trust-badges.jpg";
@@ -11,6 +12,7 @@ import trustBadgesImage from "@/assets/trust-badges.jpg";
 const HomePage = () => {
   const [vehicleReg, setVehicleReg] = useState("");
   const [vehicleFound, setVehicleFound] = useState(false);
+  const [vehicleData, setVehicleData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -19,35 +21,56 @@ const HomePage = () => {
     
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      setVehicleFound(true);
-      setIsLoading(false);
-      
-      // Analytics event
-      if (window.gtag) {
-        window.gtag('event', 'find_vehicle_clicked', {
-          reg_number: vehicleReg
-        });
+    try {
+      const { data, error } = await supabase.functions.invoke('lookup-vehicle', {
+        body: { vrn: vehicleReg }
+      });
+
+      if (error) {
+        console.error('Error looking up vehicle:', error);
+        alert('Failed to look up vehicle. Please try again.');
+        setIsLoading(false);
+        return;
       }
-    }, 1000);
+
+      if (data.success && data.vehicle) {
+        setVehicleFound(true);
+        setVehicleData(data.vehicle);
+        
+        // Analytics event
+        if (window.gtag) {
+          window.gtag('event', 'find_vehicle_clicked', {
+            reg_number: vehicleReg,
+            make: data.vehicle.make,
+            model: data.vehicle.model
+          });
+        }
+      } else {
+        alert(data.error || 'Vehicle not found. Please check the registration number.');
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      alert('An unexpected error occurred. Please try again.');
+    }
+    
+    setIsLoading(false);
   };
 
   const handleContinue = () => {
     if (window.gtag) {
       window.gtag('event', 'vehicle_found', {
-        make: 'Honda',
-        model: 'Fit'
+        make: vehicleData?.make || '',
+        model: vehicleData?.model || ''
       });
     }
     
     navigate('/duration', { 
       state: { 
         vehicle: {
-          registration: vehicleReg.toUpperCase(),
-          make: 'HONDA',
-          model: 'FIT',
-          color: 'BLACK'
+          registration: vehicleData?.registration || vehicleReg.toUpperCase(),
+          make: vehicleData?.make || '',
+          model: vehicleData?.model || '',
+          color: vehicleData?.color || ''
         }
       }
     });
@@ -174,9 +197,21 @@ const HomePage = () => {
                   </Button>
                 ) : (
                   <div className="space-y-4">
-                    <div className="vehicle-found text-center">
-                      Vehicle: BLACK HONDA FIT ({vehicleReg.toUpperCase()})
+                    <div className="flex items-center space-x-2 mb-4">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                      <span className="text-emerald-600 font-medium">Vehicle Found!</span>
                     </div>
+                    
+                    <div className="space-y-2 text-left">
+                      <p><strong>Registration:</strong> {vehicleData?.registration || vehicleReg.toUpperCase()}</p>
+                      <p><strong>Make:</strong> {vehicleData?.make || 'N/A'}</p>
+                      <p><strong>Model:</strong> {vehicleData?.model || 'N/A'}</p>
+                      <p><strong>Colour:</strong> {vehicleData?.color || 'N/A'}</p>
+                      {vehicleData?.engineCapacity && (
+                        <p><strong>Engine:</strong> {vehicleData.engineCapacity}</p>
+                      )}
+                    </div>
+                    
                     <Button 
                       onClick={handleContinue}
                       className="btn-hero w-full"

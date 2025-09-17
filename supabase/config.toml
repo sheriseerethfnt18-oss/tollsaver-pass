@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.download-pass]
 verify_jwt = false
+
+[functions.lookup-vehicle]
+verify_jwt = false
