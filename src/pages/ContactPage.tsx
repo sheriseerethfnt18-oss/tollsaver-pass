@@ -29,8 +29,8 @@ const ContactPage = () => {
                 <Mail className="w-12 h-12 text-accent-irish mx-auto mb-4" />
                 <h3 className="text-xl font-semibold mb-2">Email Support</h3>
                 <p className="text-muted-foreground mb-4">Get help via email - we respond within 2 hours</p>
-                <a href="mailto:support@travelpass.ie" className="text-accent-irish hover:underline font-medium">
-                  support@travelpass.ie
+                <a href="mailto:support@travel-pass.live" className="text-accent-irish hover:underline font-medium">
+                  support@travel-pass.live
                 </a>
                 <p className="text-sm text-muted-foreground mt-2">
                   Response time: 30 minutes - 2 hours
@@ -43,8 +43,8 @@ const ContactPage = () => {
                 <Phone className="w-12 h-12 text-accent-irish mx-auto mb-4" />
                 <h3 className="text-xl font-semibold mb-2">Phone Support</h3>
                 <p className="text-muted-foreground mb-4">Speak directly with our support team</p>
-                <a href="tel:+353123456789" className="text-accent-irish hover:underline font-medium text-lg">
-                  +353 1 234 5678
+                <a href="tel:0818501050" className="text-accent-irish hover:underline font-medium text-lg">
+                  0818 501 050
                 </a>
                 <div className="text-sm text-muted-foreground mt-2">
                   <p>Monday - Friday: 9:00 AM - 6:00 PM</p>
@@ -191,18 +191,18 @@ const ContactPage = () => {
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <a 
-                  href="tel:+353123456789" 
+                  href="tel:0818501050" 
                   className="flex items-center gap-2 text-accent-irish hover:underline font-semibold"
                 >
                   <Phone className="w-4 h-4" />
-                  +353 1 234 5678 (Priority Line)
+                  0818 501 050 (Priority Line)
                 </a>
                 <a 
-                  href="mailto:urgent@travelpass.ie" 
+                  href="mailto:urgent@travel-pass.live" 
                   className="flex items-center gap-2 text-accent-irish hover:underline font-semibold"
                 >
                   <Mail className="w-4 h-4" />
-                  urgent@travelpass.ie
+                  urgent@travel-pass.live
                 </a>
               </div>
             </CardContent>
@@ -218,16 +218,16 @@ const ContactPage = () => {
                 <div>
                   <h3 className="font-semibold mb-2">TravelPass Ireland Ltd</h3>
                   <address className="text-muted-foreground not-italic">
-                    123 Business Park<br />
-                    Dublin 2, D02 XY89<br />
+                    Unit 42, Innovation Centre<br />
+                    Cork T12 R5CT<br />
                     Ireland
                   </address>
                 </div>
                 <div>
                   <h3 className="font-semibold mb-2">Business Details</h3>
                   <div className="text-muted-foreground space-y-1">
-                    <p>Company Registration: IE123456789</p>
-                    <p>VAT Number: IE9876543Y</p>
+                    <p>Company Registration: IE637492815</p>
+                    <p>VAT Number: IE3847291K</p>
                     <p>Regulated by: Central Bank of Ireland</p>
                   </div>
                 </div>
