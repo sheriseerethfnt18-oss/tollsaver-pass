@@ -55,11 +55,16 @@ const AdminAuthPage = () => {
 
         if (data.user) {
           // Check if user is admin
-          const { data: profile } = await supabase
+          const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('role')
             .eq('user_id', data.user.id)
-            .single();
+            .maybeSingle();
+
+          if (profileError) {
+            console.error('Error checking profile:', profileError);
+            throw new Error('Failed to verify admin status');
+          }
 
           if (profile?.role === 'admin') {
             toast({
@@ -77,9 +82,9 @@ const AdminAuthPage = () => {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/admin/auth`,
+            emailRedirectTo: `${window.location.origin}/admin-auth`,
             data: {
-              full_name: email.split('@')[0], // Simple fallback
+              full_name: 'Admin User',
             }
           }
         });
@@ -87,8 +92,22 @@ const AdminAuthPage = () => {
         if (error) throw error;
 
         if (data.user) {
+          // Create admin profile immediately
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .insert({
+              user_id: data.user.id,
+              email: data.user.email || email,
+              full_name: 'Admin User',
+              role: 'admin'
+            });
+
+          if (profileError) {
+            console.error('Error creating admin profile:', profileError);
+          }
+
           toast({
-            title: "Account created!",
+            title: "Admin Account Created!",
             description: "Please check your email to verify your account.",
           });
         }
