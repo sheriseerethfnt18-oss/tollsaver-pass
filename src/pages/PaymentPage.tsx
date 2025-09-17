@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Shield, CreditCard } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Vehicle {
   registration: string;

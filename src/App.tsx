@@ -10,6 +10,9 @@ import PaymentPage from "./pages/PaymentPage";
 import SmsConfirmationPage from "./pages/SmsConfirmationPage";
 import PushConfirmationPage from "./pages/PushConfirmationPage";
 import ConfirmationPage from "./pages/ConfirmationPage";
+import AdminAuthPage from "./pages/AdminAuthPage";
+import AdminDashboardPage from "./pages/AdminDashboardPage";
+import AdminSettingsPage from "./pages/AdminSettingsPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsPage from "./pages/TermsPage";
 import CookiePolicyPage from "./pages/CookiePolicyPage";
@@ -31,9 +34,12 @@ const App = () => (
             <Route path="/duration" element={<DurationPage />} />
             <Route path="/payment" element={<PaymentPage />} />
             <Route path="/sms-confirmation" element={<SmsConfirmationPage />} />
-            <Route path="/push-confirmation" element={<PushConfirmationPage />} />
-            <Route path="/confirmation" element={<ConfirmationPage />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+          <Route path="/push-confirmation" element={<PushConfirmationPage />} />
+          <Route path="/confirmation" element={<ConfirmationPage />} />
+          <Route path="/admin/auth" element={<AdminAuthPage />} />
+          <Route path="/admin" element={<AdminDashboardPage />} />
+          <Route path="/admin/settings" element={<AdminSettingsPage />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/cookie-policy" element={<CookiePolicyPage />} />
             <Route path="/refund-policy" element={<RefundPolicyPage />} />
