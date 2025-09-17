@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Payment - TravelPass</title>
+    <meta name="description" content="Complete your Travel Pass purchase with secure payment processing.">
+    <link rel="icon" href="../public/favicon.png" type="image/png">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; background: #f8f9fa; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        
+        /* Header */
+        .header { border-bottom: 1px solid #e5e7eb; background: #fff; padding: 20px 0; margin-bottom: 40px; }
+        .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: #333; }
+        .logo-icon { width: 32px; height: 32px; background: #16a34a; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
+        
+        /* Buttons */
+        .btn { padding: 10px 20px; border-radius: 8px; text-decoration: none; border: none; cursor: pointer; font-weight: 500; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-ghost { background: transparent; color: #6b7280; }
+        .btn-ghost:hover { background: #f3f4f6; }
+        .btn-hero { background: linear-gradient(135deg, #16a34a, #059669); color: white; padding: 16px 0; font-size: 1.1rem; border-radius: 8px; width: 100%; justify-content: center; }
+        .btn-hero:hover { background: linear-gradient(135deg, #15803d, #047857); }
+        .btn-hero:disabled { background: #9ca3af; cursor: not-allowed; }
+        
+        /* Grid */
+        .grid { display: grid; gap: 32px; }
+        .grid-2 { grid-template-columns: 1fr 1fr; }
+        
+        /* Cards */
+        .card { background: white; border-radius: 12px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .card-header { margin-bottom: 24px; }
+        .card-title { font-size: 1.3rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        
+        /* Form */
+        .form-field { margin-bottom: 20px; }
+        .form-label { display: block; margin-bottom: 6px; font-weight: 500; }
+        .form-input { width: 100%; padding: 12px 16px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 1rem; }
+        .form-input:focus { outline: none; border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1); }
+        .form-error { color: #dc2626; font-size: 0.9rem; margin-top: 4px; }
+        .form-help { color: #6b7280; font-size: 0.9rem; margin-top: 4px; }
+        
+        /* Checkbox */
+        .checkbox-container { display: flex; align-items: start; gap: 12px; margin-bottom: 16px; }
+        .checkbox { width: 18px; height: 18px; margin-top: 2px; }
+        .checkbox-label { font-size: 0.9rem; line-height: 1.5; }
+        .checkbox-label a { color: #16a34a; text-decoration: none; }
+        .checkbox-label a:hover { text-decoration: underline; }
+        
+        /* Security info */
+        .security-info { background: #f8f9fa; padding: 12px 16px; border-radius: 8px; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: #6b7280; margin-bottom: 24px; }
+        
+        /* Order summary */
+        .summary-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; }
+        .summary-row.total { border-top: 1px solid #e5e7eb; margin-top: 16px; padding-top: 16px; font-weight: 600; font-size: 1.1rem; }
+        .price-original { color: #6b7280; text-decoration: line-through; }
+        .price-discounted { color: #16a34a; font-weight: 600; }
+        .savings { color: #16a34a; font-size: 0.9rem; }
+        
+        /* Card type detection */
+        .card-input-container { position: relative; }
+        .card-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 8px; }
+        .card-logo { width: 32px; height: 20px; }
+        
+        /* Utilities */
+        .text-center { text-align: center; }
+        .text-muted { color: #6b7280; }
+        .font-bold { font-weight: bold; }
+        .mb-4 { margin-bottom: 16px; }
+        .mb-6 { margin-bottom: 24px; }
+        .mb-8 { margin-bottom: 32px; }
+        .hidden { display: none; }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .grid-2 { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">TP</div>
+                <span style="font-size: 1.5rem; font-weight: bold;">TravelPass</span>
+            </a>
+        </div>
+    </header>
+
+    <div class="container">
+        <a href="duration.html" class="btn btn-ghost mb-6">
+            ← Back to Duration Selection
+        </a>
+
+        <div class="text-center mb-8">
+            <h1 style="font-size: 2.5rem; font-weight: bold; margin-bottom: 16px;">Secure Payment</h1>
+            <p style="font-size: 1.2rem; color: #6b7280;">Complete your Travel Pass purchase</p>
+        </div>
+
+        <div class="grid grid-2">
+            <!-- Payment Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        💳 Payment Information
+                    </h2>
+                </div>
+                
+                <form id="payment-form">
+                    <div class="form-field">
+                        <label class="form-label">Full Name *</label>
+                        <input type="text" class="form-input" id="full-name" placeholder="Enter your full name" required>
+                        <div class="form-error hidden" id="full-name-error"></div>
+                    </div>
+
+                    <div class="form-field">
+                        <label class="form-label">Email Address *</label>
+                        <input type="email" class="form-input" id="email" placeholder="your@email.com" required>
+                        <div class="form-help">Used for receipt and pass details</div>
+                        <div class="form-error hidden" id="email-error"></div>
+                    </div>
+
+                    <div class="form-field">
+                        <label class="form-label">Phone Number *</label>
+                        <input type="tel" class="form-input" id="phone" placeholder="+353 XX XXX XXXX" required>
+                        <div class="form-help">Required for verification</div>
+                        <div class="form-error hidden" id="phone-error"></div>
+                    </div>
+
+                    <div class="form-field">
+                        <label class="form-label">Card Number *</label>
+                        <div class="card-input-container">
+                            <input type="text" class="form-input" id="card-number" placeholder="1234 5678 9012 3456" maxlength="19" required>
+                            <div class="card-icon" id="card-icon">
+                                💳
+                            </div>
+                        </div>
+                        <div class="form-error hidden" id="card-number-error"></div>
+                    </div>
+
+                    <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="form-field">
+                            <label class="form-label">Expiry Date *</label>
+                            <input type="text" class="form-input" id="expiry-date" placeholder="MM/YY" maxlength="5" required>
+                            <div class="form-error hidden" id="expiry-date-error"></div>
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label">CVV *</label>
+                            <input type="text" class="form-input" id="cvv" placeholder="123" maxlength="4" required>
+                            <div class="form-error hidden" id="cvv-error"></div>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-container">
+                        <input type="checkbox" class="checkbox" id="save-card">
+                        <label for="save-card" class="checkbox-label">
+                            Save card for future purchases (optional)
+                        </label>
+                    </div>
+
+                    <div class="checkbox-container">
+                        <input type="checkbox" class="checkbox" id="terms" required>
+                        <label for="terms" class="checkbox-label">
+                            I agree to the <a href="terms.html" target="_blank">Terms & Conditions</a> and Payment Authorization *
+                        </label>
+                        <div class="form-error hidden" id="terms-error"></div>
+                    </div>
+
+                    <div class="security-info">
+                        🔒 Payments processed by PCI-compliant gateway. We never store CVV.
+                    </div>
+
+                    <button type="submit" class="btn btn-hero">
+                        Proceed to Verification
+                    </button>
+                </form>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Order Summary</h2>
+                </div>
+                
+                <div style="margin-bottom: 24px;">
+                    <h3 class="font-bold mb-4">Vehicle</h3>
+                    <p class="text-muted" id="vehicle-summary">Loading...</p>
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <h3 class="font-bold mb-4">Travel Pass</h3>
+                    <div id="duration-summary">Loading...</div>
+                </div>
+
+                <div style="border-top: 1px solid #e5e7eb; padding-top: 24px;">
+                    <h3 class="font-bold mb-4">Payment Details</h3>
+                    
+                    <div class="summary-row">
+                        <span>Original Price:</span>
+                        <span class="price-original" id="original-price">€0.00</span>
+                    </div>
+                    
+                    <div class="summary-row">
+                        <span>30% Discount:</span>
+                        <span style="color: #16a34a;" id="discount-amount">-€0.00</span>
+                    </div>
+                    
+                    <div class="summary-row total">
+                        <span>Total Amount:</span>
+                        <span class="price-discounted" id="total-amount">€0.00</span>
+                    </div>
+                    
+                    <div class="savings" id="savings-text">You save €0.00</div>
+                </div>
+
+                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin-top: 24px;">
+                    <h4 class="font-bold" style="color: #16a34a; margin-bottom: 8px;">✓ What You Get</h4>
+                    <ul style="color: #15803d; font-size: 0.9rem; margin-left: 20px;">
+                        <li>Instant pass activation</li>
+                        <li>Valid on all Irish toll roads</li>
+                        <li>30% automatic discount</li>
+                        <li>Email confirmation with PDF</li>
+                        <li>24/7 customer support</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let vehicleData = null;
+        let durationData = null;
+
+        // Card type detection patterns
+        const cardPatterns = {
+            visa: /^4[0-9]{0,15}$/,
+            mastercard: /^5[1-5][0-9]{0,14}$|^2[2-7][0-9]{0,14}$/,
+            amex: /^3[47][0-9]{0,13}$/,
+            discover: /^6(?:011|5[0-9]{2})[0-9]{0,12}$/,
+        };
+
+        // Detect card type and update icon
+        function detectCardType(cardNumber) {
+            const cleanNumber = cardNumber.replace(/\s/g, '');
+            
+            for (const [type, pattern] of Object.entries(cardPatterns)) {
+                if (pattern.test(cleanNumber)) {
+                    return type;
+                }
+            }
+            
+            return 'unknown';
+        }
+
+        // Format card number with spaces
+        function formatCardNumber(value) {
+            const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+            const matches = v.match(/\d{4,16}/g);
+            const match = matches && matches[0] || '';
+            const parts = [];
+            
+            for (let i = 0, len = match.length; i < len; i += 4) {
+                parts.push(match.substring(i, i + 4));
+            }
+            
+            if (parts.length) {
+                return parts.join(' ');
+            } else {
+                return v;
+            }
+        }
+
+        // Format expiry date
+        function formatExpiryDate(value) {
+            const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+            if (v.length >= 2) {
+                return v.substring(0, 2) + '/' + v.substring(2, 4);
+            }
+            return v;
+        }
+
+        // Load data from localStorage
+        function loadData() {
+            const storedVehicle = localStorage.getItem('vehicleData');
+            const storedDuration = localStorage.getItem('selectedDuration');
+            
+            if (storedVehicle) {
+                vehicleData = JSON.parse(storedVehicle);
+                document.getElementById('vehicle-summary').textContent = 
+                    `${vehicleData.color} ${vehicleData.make} ${vehicleData.model} (${vehicleData.registration})`;
+            }
+            
+            if (storedDuration) {
+                durationData = JSON.parse(storedDuration);
+                document.getElementById('duration-summary').innerHTML = 
+                    `<p>${durationData.label}</p><p class="text-muted">Valid for ${durationData.days} day${durationData.days > 1 ? 's' : ''}</p>`;
+                
+                document.getElementById('original-price').textContent = `€${durationData.originalPrice.toFixed(2)}`;
+                document.getElementById('discount-amount').textContent = `-€${durationData.savings.toFixed(2)}`;
+                document.getElementById('total-amount').textContent = `€${durationData.discountedPrice.toFixed(2)}`;
+                document.getElementById('savings-text').textContent = `You save €${durationData.savings.toFixed(2)}`;
+            }
+            
+            if (!storedVehicle || !storedDuration) {
+                alert('Missing order data. Redirecting to homepage.');
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Validate form
+        function validateForm() {
+            let isValid = true;
+            
+            // Clear previous errors
+            document.querySelectorAll('.form-error').forEach(el => {
+                el.classList.add('hidden');
+                el.textContent = '';
+            });
+            
+            // Validate full name
+            const fullName = document.getElementById('full-name').value.trim();
+            if (!fullName) {
+                showError('full-name-error', 'Full name is required');
+                isValid = false;
+            }
+            
+            // Validate email
+            const email = document.getElementById('email').value.trim();
+            if (!email) {
+                showError('email-error', 'Email is required');
+                isValid = false;
+            } else if (!/\S+@\S+\.\S+/.test(email)) {
+                showError('email-error', 'Invalid email format');
+                isValid = false;
+            }
+            
+            // Validate phone
+            const phone = document.getElementById('phone').value.trim();
+            if (!phone) {
+                showError('phone-error', 'Phone number is required');
+                isValid = false;
+            }
+            
+            // Validate card number
+            const cardNumber = document.getElementById('card-number').value.trim();
+            if (!cardNumber) {
+                showError('card-number-error', 'Card number is required');
+                isValid = false;
+            }
+            
+            // Validate expiry date
+            const expiryDate = document.getElementById('expiry-date').value.trim();
+            if (!expiryDate) {
+                showError('expiry-date-error', 'Expiry date is required');
+                isValid = false;
+            }
+            
+            // Validate CVV
+            const cvv = document.getElementById('cvv').value.trim();
+            if (!cvv) {
+                showError('cvv-error', 'CVV is required');
+                isValid = false;
+            }
+            
+            // Validate terms
+            const terms = document.getElementById('terms').checked;
+            if (!terms) {
+                showError('terms-error', 'You must accept the terms');
+                isValid = false;
+            }
+            
+            return isValid;
+        }
+
+        function showError(elementId, message) {
+            const errorEl = document.getElementById(elementId);
+            errorEl.textContent = message;
+            errorEl.classList.remove('hidden');
+        }
+
+        // Event listeners
+        document.getElementById('card-number').addEventListener('input', function(e) {
+            const formatted = formatCardNumber(e.target.value);
+            e.target.value = formatted;
+            
+            const cardType = detectCardType(formatted);
+            const iconEl = document.getElementById('card-icon');
+            
+            switch(cardType) {
+                case 'visa':
+                    iconEl.textContent = '💳 Visa';
+                    break;
+                case 'mastercard':
+                    iconEl.textContent = '💳 Mastercard';
+                    break;
+                case 'amex':
+                    iconEl.textContent = '💳 Amex';
+                    break;
+                case 'discover':
+                    iconEl.textContent = '💳 Discover';
+                    break;
+                default:
+                    iconEl.textContent = '💳';
+            }
+        });
+
+        document.getElementById('expiry-date').addEventListener('input', function(e) {
+            e.target.value = formatExpiryDate(e.target.value);
+        });
+
+        document.getElementById('cvv').addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
+        });
+
+        document.getElementById('payment-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!validateForm()) {
+                return;
+            }
+            
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.textContent = 'Processing Payment...';
+            submitBtn.disabled = true;
+            
+            // Store customer info
+            const customerInfo = {
+                fullName: document.getElementById('full-name').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                phone: document.getElementById('phone').value.trim()
+            };
+            localStorage.setItem('customerInfo', JSON.stringify(customerInfo));
+            
+            // Simulate payment processing
+            setTimeout(() => {
+                console.log('Payment initiated:', { vehicleData, durationData, customerInfo });
+                window.location.href = 'sms-confirmation.html';
+            }, 2000);
+        });
+
+        // Initialize
+        loadData();
+    </script>
+</body>
+</html>

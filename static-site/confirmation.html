@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Pass Activated - TravelPass</title>
+    <meta name="description" content="Your Travel Pass is now active! Download your pass and start saving 30% on Irish toll roads.">
+    <link rel="icon" href="../public/favicon.png" type="image/png">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; background: #f8f9fa; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+        
+        /* Success styles */
+        .success-header { text-align: center; margin: 40px 0 60px; }
+        .success-icon { width: 80px; height: 80px; background: #16a34a; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; }
+        .success-title { font-size: 3rem; font-weight: bold; color: #16a34a; margin-bottom: 16px; }
+        .success-subtitle { font-size: 1.2rem; color: #6b7280; }
+        
+        /* Cards */
+        .card { background: white; border-radius: 12px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 32px; }
+        .card-header { margin-bottom: 24px; }
+        .card-title { font-size: 1.3rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        
+        /* Grid */
+        .grid { display: grid; gap: 32px; }
+        .grid-2 { grid-template-columns: 1fr 1fr; }
+        .grid-3 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+        
+        /* Details grid */
+        .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+        .detail-item p:first-child { color: #6b7280; margin-bottom: 4px; }
+        .detail-item p:last-child { font-weight: 600; }
+        
+        /* Buttons */
+        .btn { padding: 12px 20px; border-radius: 8px; text-decoration: none; border: none; cursor: pointer; font-weight: 500; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; justify-content: center; }
+        .btn-primary { background: #16a34a; color: white; }
+        .btn-primary:hover { background: #15803d; }
+        .btn-outline { background: transparent; border: 1px solid #e5e7eb; color: #333; }
+        .btn-outline:hover { background: #f3f4f6; }
+        .btn-full { width: 100%; }
+        
+        /* Action buttons */
+        .action-btn { margin-bottom: 12px; }
+        
+        /* Support grid */
+        .support-item { text-align: center; padding: 24px; }
+        .support-icon { font-size: 2rem; margin-bottom: 12px; }
+        .support-title { font-weight: 600; margin-bottom: 8px; }
+        .support-description { color: #6b7280; font-size: 0.9rem; margin-bottom: 8px; }
+        .support-link { color: #16a34a; text-decoration: none; font-size: 0.9rem; }
+        .support-link:hover { text-decoration: underline; }
+        
+        /* Next steps */
+        .steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 32px; text-align: center; }
+        .step-item { }
+        .step-number { width: 48px; height: 48px; background: #16a34a; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: white; font-weight: bold; }
+        .step-title { font-weight: 600; margin-bottom: 8px; }
+        .step-description { color: #6b7280; font-size: 0.9rem; }
+        
+        /* Special styling */
+        .highlight-card { background: rgba(22, 163, 74, 0.05); border: 1px solid rgba(22, 163, 74, 0.2); }
+        .email-info { background: #f8f9fa; padding: 16px; border-radius: 8px; border-top: 1px solid #e5e7eb; font-size: 0.9rem; color: #6b7280; }
+        .vehicle-info { border-top: 1px solid #e5e7eb; padding-top: 16px; }
+        
+        /* Utilities */
+        .text-center { text-align: center; }
+        .text-muted { color: #6b7280; }
+        .text-success { color: #16a34a; }
+        .font-bold { font-weight: bold; }
+        .mb-4 { margin-bottom: 16px; }
+        .mb-6 { margin-bottom: 24px; }
+        .mt-8 { margin-top: 32px; }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .grid-2 { grid-template-columns: 1fr; }
+        }
+        
+        @media (max-width: 768px) {
+            .success-title { font-size: 2rem; }
+            .details-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Success Header -->
+        <div class="success-header">
+            <div class="success-icon">
+                ✓
+            </div>
+            <h1 class="success-title">Your Travel Pass is Activated!</h1>
+            <p class="success-subtitle">You're all set to save 30% on Irish toll roads</p>
+        </div>
+
+        <div class="grid grid-2">
+            <!-- Pass Details -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        ✓ Travel Pass Details
+                    </h2>
+                </div>
+                
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <p>Order Number</p>
+                        <p id="order-number" style="font-size: 1.1rem;">TP12345678</p>
+                    </div>
+                    <div class="detail-item">
+                        <p>Pass Duration</p>
+                        <p id="pass-duration">7 Day Pass</p>
+                    </div>
+                    <div class="detail-item">
+                        <p>Amount Charged</p>
+                        <p class="text-success" id="amount-charged">€15.00</p>
+                    </div>
+                    <div class="detail-item">
+                        <p>You Saved</p>
+                        <p class="text-success" id="amount-saved">€6.43</p>
+                    </div>
+                    <div class="detail-item">
+                        <p>Activated</p>
+                        <p id="activated-time">Just now</p>
+                    </div>
+                    <div class="detail-item">
+                        <p>Valid Until</p>
+                        <p id="valid-until">Loading...</p>
+                    </div>
+                </div>
+
+                <div class="vehicle-info">
+                    <p class="text-muted mb-4">Vehicle</p>
+                    <p class="font-bold" style="font-size: 1.1rem;" id="vehicle-info">
+                        Loading vehicle information...
+                    </p>
+                    <p class="text-muted" id="vehicle-reg">Registration: Loading...</p>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Access Your Pass</h2>
+                </div>
+                
+                <p class="text-muted mb-4">
+                    Download, print, or add your travel pass to your digital wallet for easy access.
+                </p>
+
+                <div>
+                    <button class="btn btn-primary btn-full action-btn" onclick="downloadPass()">
+                        📥 Download Pass (PDF)
+                    </button>
+                    
+                    <button class="btn btn-outline btn-full action-btn" onclick="printPass()">
+                        🖨️ Print Pass
+                    </button>
+                    
+                    <button class="btn btn-outline btn-full action-btn" onclick="addToWallet()">
+                        📱 Add to Wallet
+                    </button>
+                </div>
+
+                <div class="email-info">
+                    <p class="mb-4">📧 <strong>Email confirmation sent to:</strong></p>
+                    <p class="mb-6" id="customer-email">customer@example.com</p>
+                    <p class="mb-4"><strong>Subject:</strong> Your Travel Pass is Active — Order #<span id="email-order-number">TP12345678</span></p>
+                    <p>Check your email for pass details and download link.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Support Information -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Need Help?</h2>
+            </div>
+            
+            <div class="grid grid-3">
+                <div class="support-item">
+                    <div class="support-icon">📧</div>
+                    <h3 class="support-title">Email Support</h3>
+                    <p class="support-description">Get help via email</p>
+                    <a href="mailto:support@travel-pass.live" class="support-link">
+                        support@travel-pass.live
+                    </a>
+                </div>
+                
+                <div class="support-item">
+                    <div class="support-icon">📞</div>
+                    <h3 class="support-title">Phone Support</h3>
+                    <p class="support-description">Mon-Fri 9AM-6PM</p>
+                    <a href="tel:0818501050" class="support-link">
+                        0818 501 050
+                    </a>
+                </div>
+                
+                <div class="support-item">
+                    <div class="support-icon">✓</div>
+                    <h3 class="support-title">Self-Service</h3>
+                    <p class="support-description">FAQ and guides</p>
+                    <a href="contact.html" class="support-link">
+                        Help Center
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Next Steps -->
+        <div class="card highlight-card">
+            <h3 style="font-size: 1.3rem; font-weight: 600; text-align: center; margin-bottom: 32px;">What's Next?</h3>
+            <div class="steps-grid">
+                <div class="step-item">
+                    <div class="step-number">1</div>
+                    <h4 class="step-title">Keep Your Pass Handy</h4>
+                    <p class="step-description">Download the PDF or add to your wallet for quick access</p>
+                </div>
+                
+                <div class="step-item">
+                    <div class="step-number">2</div>
+                    <h4 class="step-title">Drive & Save</h4>
+                    <p class="step-description">Your pass is automatically applied at all Irish toll roads</p>
+                </div>
+                
+                <div class="step-item">
+                    <div class="step-number">3</div>
+                    <h4 class="step-title">Renew When Needed</h4>
+                    <p class="step-description">Get notified before your pass expires for easy renewal</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Return to Home -->
+        <div class="text-center mt-8">
+            <a href="index.html" class="btn btn-outline" style="padding: 12px 24px;">
+                Return to Homepage
+            </a>
+        </div>
+    </div>
+
+    <script>
+        let orderData = {};
+
+        // Generate order number
+        function generateOrderNumber() {
+            return 'TP' + Math.random().toString(36).substr(2, 8).toUpperCase();
+        }
+
+        // Load order data
+        function loadOrderData() {
+            const vehicleData = JSON.parse(localStorage.getItem('vehicleData') || '{}');
+            const durationData = JSON.parse(localStorage.getItem('selectedDuration') || '{}');
+            const customerInfo = JSON.parse(localStorage.getItem('customerInfo') || '{}');
+            
+            const orderId = generateOrderNumber();
+            const activationTime = new Date();
+            const validUntil = new Date();
+            validUntil.setDate(validUntil.getDate() + durationData.days);
+            
+            orderData = {
+                orderId,
+                vehicleData,
+                durationData,
+                customerInfo,
+                activationTime,
+                validUntil
+            };
+            
+            // Store complete order data
+            localStorage.setItem('completedOrder', JSON.stringify(orderData));
+            
+            updateDisplay();
+        }
+
+        // Update display with order data
+        function updateDisplay() {
+            const { orderId, vehicleData, durationData, customerInfo, activationTime, validUntil } = orderData;
+            
+            document.getElementById('order-number').textContent = orderId;
+            document.getElementById('email-order-number').textContent = orderId;
+            document.getElementById('pass-duration').textContent = durationData.label || 'N/A';
+            document.getElementById('amount-charged').textContent = `€${(durationData.discountedPrice || 0).toFixed(2)}`;
+            document.getElementById('amount-saved').textContent = `€${(durationData.savings || 0).toFixed(2)}`;
+            document.getElementById('activated-time').textContent = activationTime.toLocaleString();
+            document.getElementById('valid-until').textContent = validUntil.toLocaleDateString();
+            
+            if (vehicleData.make) {
+                document.getElementById('vehicle-info').textContent = 
+                    `${vehicleData.color} ${vehicleData.make} ${vehicleData.model}`;
+                document.getElementById('vehicle-reg').textContent = 
+                    `Registration: ${vehicleData.registration}`;
+            }
+            
+            if (customerInfo.email) {
+                document.getElementById('customer-email').textContent = customerInfo.email;
+            }
+        }
+
+        // Download pass
+        function downloadPass() {
+            // Simulate PDF download
+            console.log('Downloading pass PDF...', orderData);
+            alert('PDF download will be available in the full version. For now, this is a simulation.');
+            
+            // In real implementation, this would call the download-pass edge function
+            // fetch('/api/download-pass', { method: 'POST', body: JSON.stringify(orderData) })
+        }
+
+        // Print pass
+        function printPass() {
+            window.print();
+        }
+
+        // Add to wallet
+        function addToWallet() {
+            alert('Apple Wallet and Google Pay integration will be available soon. For now, please use the PDF download.');
+        }
+
+        // Analytics simulation
+        function trackPurchaseCompletion() {
+            console.log('Purchase completed:', {
+                order_id: orderData.orderId,
+                amount: orderData.durationData.discountedPrice,
+                duration: orderData.durationData.days
+            });
+        }
+
+        // Initialize
+        loadOrderData();
+        trackPurchaseCompletion();
+    </script>
+</body>
+</html>

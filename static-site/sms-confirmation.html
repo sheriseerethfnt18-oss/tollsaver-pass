@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMS Verification - TravelPass</title>
+    <meta name="description" content="Enter your SMS verification code to complete your Travel Pass purchase.">
+    <link rel="icon" href="../public/favicon.png" type="image/png">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; background: #f8f9fa; min-height: 100vh; display: flex; align-items: center; }
+        .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+        .card { background: white; border-radius: 12px; padding: 40px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; }
+        .icon { width: 80px; height: 80px; background: #16a34a; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 2rem; color: white; }
+        h1 { font-size: 2rem; font-weight: bold; margin-bottom: 16px; }
+        .subtitle { color: #6b7280; margin-bottom: 32px; }
+        .code-input { width: 100%; max-width: 200px; padding: 16px; font-size: 1.5rem; text-align: center; border: 2px solid #e5e7eb; border-radius: 8px; margin: 0 auto 24px; display: block; letter-spacing: 0.5rem; }
+        .code-input:focus { outline: none; border-color: #16a34a; }
+        .btn { padding: 16px 32px; background: #16a34a; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; margin-bottom: 16px; }
+        .btn:hover { background: #15803d; }
+        .btn:disabled { background: #9ca3af; cursor: not-allowed; }
+        .timer { color: #16a34a; font-weight: 600; margin-bottom: 16px; }
+        .resend-btn { background: transparent; color: #16a34a; border: 1px solid #16a34a; }
+        .error { color: #dc2626; margin: 16px 0; }
+        .back-btn { color: #6b7280; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; margin-bottom: 32px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="payment.html" class="back-btn">← Back to Payment</a>
+        
+        <div class="card">
+            <div class="icon">📱</div>
+            <h1>Check Your Messages</h1>
+            <p class="subtitle">We've sent a 6-digit verification code to your phone. Enter it below to complete your purchase.</p>
+            
+            <form id="verification-form">
+                <input type="text" class="code-input" id="sms-code" placeholder="000000" maxlength="6" required>
+                <div class="error" id="error-message" style="display: none;"></div>
+                
+                <button type="submit" class="btn" id="verify-btn">Verify & Complete Purchase</button>
+            </form>
+            
+            <div class="timer" id="timer">Code expires in 5:00</div>
+            <button class="btn resend-btn" id="resend-btn" disabled>Resend Code</button>
+            
+            <p style="color: #6b7280; font-size: 0.9rem; margin-top: 24px;">
+                Having trouble? Contact us at <a href="mailto:support@travel-pass.live" style="color: #16a34a;">support@travel-pass.live</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        let timeRemaining = 300; // 5 minutes
+        let timerInterval;
+
+        // Start countdown timer
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                const minutes = Math.floor(timeRemaining / 60);
+                const seconds = timeRemaining % 60;
+                document.getElementById('timer').textContent = 
+                    `Code expires in ${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    document.getElementById('resend-btn').disabled = false;
+                    document.getElementById('timer').textContent = 'Code expired';
+                }
+            }, 1000);
+        }
+
+        // Handle form submission
+        document.getElementById('verification-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const code = document.getElementById('sms-code').value;
+            const errorEl = document.getElementById('error-message');
+            const verifyBtn = document.getElementById('verify-btn');
+            
+            if (code.length !== 6) {
+                errorEl.textContent = 'Please enter a 6-digit code';
+                errorEl.style.display = 'block';
+                return;
+            }
+            
+            errorEl.style.display = 'none';
+            verifyBtn.textContent = 'Verifying...';
+            verifyBtn.disabled = true;
+            
+            // Simulate verification
+            setTimeout(() => {
+                console.log('SMS verification completed with code:', code);
+                window.location.href = 'confirmation.html';
+            }, 2000);
+        });
+
+        // Handle resend
+        document.getElementById('resend-btn').addEventListener('click', function() {
+            timeRemaining = 300;
+            this.disabled = true;
+            startTimer();
+            console.log('SMS code resent');
+        });
+
+        // Only allow digits in code input
+        document.getElementById('sms-code').addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/\D/g, '');
+        });
+
+        // Initialize
+        startTimer();
+    </script>
+</body>
+</html>

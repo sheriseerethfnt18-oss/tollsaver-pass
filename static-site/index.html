@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TravelPass - Save 30% on All Irish Toll Roads</title>
+    <meta name="description" content="Get Your Travel Pass in 2 Minutes - Save 30% on Irish toll roads with instant activation and nationwide coverage.">
+    <link rel="icon" href="../public/favicon.png" type="image/png">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        
+        /* Header */
+        .header { border-bottom: 1px solid #e5e7eb; background: #fff; position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
+        .nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; }
+        .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: #333; }
+        .logo-icon { width: 32px; height: 32px; background: #16a34a; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
+        .nav-links { display: none; gap: 32px; }
+        .nav-links a { text-decoration: none; color: #333; transition: color 0.3s; }
+        .nav-links a:hover { color: #16a34a; }
+        .nav-buttons { display: flex; gap: 16px; }
+        .btn { padding: 10px 20px; border-radius: 8px; text-decoration: none; border: none; cursor: pointer; font-weight: 500; transition: all 0.3s; }
+        .btn-outline { background: transparent; border: 1px solid #e5e7eb; color: #333; }
+        .btn-outline:hover { background: #f3f4f6; }
+        .btn-primary { background: #16a34a; color: white; }
+        .btn-primary:hover { background: #15803d; }
+        .btn-hero { background: linear-gradient(135deg, #16a34a, #059669); color: white; padding: 16px 32px; font-size: 1.2rem; border-radius: 12px; }
+        .btn-hero:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(22, 163, 74, 0.3); }
+        
+        /* Hero Section */
+        .hero { min-height: 100vh; display: flex; align-items: center; position: relative; color: white; text-align: center; }
+        .hero-bg { position: absolute; inset: 0; background: url('../src/assets/hero-motorway.jpg') center/cover; }
+        .hero-bg::after { content: ''; position: absolute; inset: 0; background: rgba(22, 163, 74, 0.7); }
+        .hero-content { position: relative; z-index: 10; }
+        .hero h1 { font-size: 4rem; font-weight: bold; margin-bottom: 24px; line-height: 1.1; }
+        .hero-subtitle { font-size: 1.5rem; margin-bottom: 32px; opacity: 0.9; }
+        .hero-description { font-size: 1.1rem; margin-bottom: 48px; opacity: 0.8; max-width: 600px; margin-left: auto; margin-right: auto; }
+        
+        /* Sections */
+        .section { padding: 80px 0; }
+        .section-muted { background: #f8f9fa; }
+        .section-title { font-size: 2.5rem; font-weight: bold; text-align: center; margin-bottom: 16px; }
+        .section-subtitle { font-size: 1.2rem; color: #6b7280; text-align: center; margin-bottom: 64px; }
+        
+        /* Grid */
+        .grid { display: grid; gap: 32px; }
+        .grid-2 { grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); }
+        .grid-3 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+        .grid-4 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+        
+        /* Cards */
+        .card { background: white; border-radius: 12px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .card-border { border: 2px solid #16a34a; }
+        .card-center { text-align: center; }
+        .card-icon { width: 64px; height: 64px; background: #16a34a; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: white; }
+        .card-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 8px; }
+        .card-description { color: #6b7280; }
+        
+        /* Pricing */
+        .price-original { color: #6b7280; text-decoration: line-through; font-size: 1.1rem; }
+        .price-discounted { font-size: 2rem; font-weight: bold; color: #16a34a; margin: 8px 0; }
+        .price-savings { color: #16a34a; font-weight: 500; }
+        .popular-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #16a34a; color: white; padding: 4px 16px; border-radius: 20px; font-size: 0.9rem; }
+        
+        /* Form */
+        .form-card { max-width: 600px; margin: 0 auto; }
+        .form-field { margin-bottom: 24px; }
+        .form-label { display: block; margin-bottom: 8px; font-weight: 500; }
+        .form-input { width: 100%; padding: 12px 16px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 1rem; }
+        .form-input:focus { outline: none; border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1); }
+        .btn-full { width: 100%; }
+        
+        /* Vehicle Found */
+        .vehicle-found { background: #dcfce7; border: 1px solid #16a34a; border-radius: 8px; padding: 24px; margin: 24px 0; }
+        .success-icon { color: #16a34a; }
+        
+        /* Responsive */
+        @media (min-width: 768px) {
+            .nav-links { display: flex; }
+            .hero h1 { font-size: 5rem; }
+        }
+        
+        /* Utilities */
+        .hidden { display: none; }
+        .text-center { text-align: center; }
+        .text-success { color: #16a34a; }
+        .text-muted { color: #6b7280; }
+        .font-bold { font-weight: bold; }
+        .mb-4 { margin-bottom: 16px; }
+        .mt-8 { margin-top: 32px; }
+        .relative { position: relative; }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <nav class="nav">
+                <a href="#" class="logo">
+                    <div class="logo-icon">TP</div>
+                    <span style="font-size: 1.5rem; font-weight: bold;">TravelPass</span>
+                </a>
+                
+                <div class="nav-links">
+                    <a href="#home">Home</a>
+                    <a href="duration.html">Pricing</a>
+                    <a href="contact.html">Contact</a>
+                </div>
+
+                <div class="nav-buttons">
+                    <a href="contact.html" class="btn btn-outline">Support</a>
+                    <a href="duration.html" class="btn btn-primary">Get Pass</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-bg"></div>
+        <div class="container">
+            <div class="hero-content">
+                <h1>Save 30% on All Irish Toll Roads</h1>
+                <p class="hero-subtitle">Get Your Travel Pass in 2 Minutes</p>
+                <p class="hero-description">One pass. One payment. Instant savings across Ireland's toll network.</p>
+                <a href="#vehicle-lookup" class="btn btn-hero" onclick="scrollToSection('vehicle-lookup')">Get My Pass Now</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="section section-muted">
+        <div class="container">
+            <h2 class="section-title">How It Works</h2>
+            <p class="section-subtitle">Get your travel pass in 4 simple steps</p>
+            
+            <div class="grid grid-4">
+                <div class="card card-center">
+                    <div class="card-icon">🚗</div>
+                    <h3 class="card-title">1. Enter Registration</h3>
+                    <p class="card-description">Enter your vehicle registration number - we instantly find your car.</p>
+                </div>
+                
+                <div class="card card-center">
+                    <div class="card-icon">✓</div>
+                    <h3 class="card-title">2. Confirm Vehicle</h3>
+                    <p class="card-description">We show make, color and registration to confirm it's your vehicle.</p>
+                </div>
+                
+                <div class="card card-center">
+                    <div class="card-icon">⏰</div>
+                    <h3 class="card-title">3. Choose Duration</h3>
+                    <p class="card-description">Select your pass duration with automatic 30% discount applied.</p>
+                </div>
+                
+                <div class="card card-center">
+                    <div class="card-icon">💳</div>
+                    <h3 class="card-title">4. Pay & Activate</h3>
+                    <p class="card-description">Pay securely, verify your identity, and drive with confidence!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Vehicle Lookup -->
+    <section id="vehicle-lookup" class="section">
+        <div class="container">
+            <div class="form-card">
+                <h2 class="section-title">Find Your Vehicle</h2>
+                <p class="section-subtitle">Enter your registration number to get started</p>
+                
+                <div class="card">
+                    <form id="vehicle-form">
+                        <div class="form-field">
+                            <label class="form-label">Vehicle Registration Number</label>
+                            <input 
+                                type="text" 
+                                class="form-input" 
+                                id="vehicle-reg" 
+                                placeholder="e.g. 161D66608"
+                                required
+                            />
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-full" id="find-btn">
+                            Find My Vehicle
+                        </button>
+                    </form>
+                    
+                    <div id="vehicle-result" class="hidden">
+                        <div class="vehicle-found">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+                                <span class="success-icon">✓</span>
+                                <span class="text-success font-bold">Vehicle Found!</span>
+                            </div>
+                            
+                            <div id="vehicle-details"></div>
+                            
+                            <a href="duration.html" class="btn btn-hero btn-full mt-8">Continue</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits -->
+    <section class="section section-muted">
+        <div class="container">
+            <h2 class="section-title">Why Choose TravelPass?</h2>
+            
+            <div class="grid grid-4">
+                <div class="card card-center">
+                    <div class="card-icon">📍</div>
+                    <h3 class="card-title">Nationwide Coverage</h3>
+                    <p class="card-description">Valid on all toll roads across Ireland</p>
+                </div>
+                
+                <div class="card card-center">
+                    <div class="card-icon">⚡</div>
+                    <h3 class="card-title">Instant Activation</h3>
+                    <p class="card-description">Your pass activates immediately after verification</p>
+                </div>
+                
+                <div class="card card-center">
+                    <div class="card-icon">🔒</div>
+                    <h3 class="card-title">Secure Payments</h3>
+                    <p class="card-description">PCI-compliant payment processing</p>
+                </div>
+                
+                <div class="card card-center">
+                    <div class="card-icon">💰</div>
+                    <h3 class="card-title">Easy Refunds</h3>
+                    <p class="card-description">Full refund within 24 hours if unused</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Preview -->
+    <section class="section">
+        <div class="container">
+            <h2 class="section-title">Pricing</h2>
+            <p class="section-subtitle">Automatic 30% discount on all durations</p>
+            
+            <div class="grid grid-3">
+                <div class="card card-center">
+                    <h3 class="card-title" style="font-size: 1.5rem;">1 Day Pass</h3>
+                    <div style="margin: 24px 0;">
+                        <div class="price-original">€5.00</div>
+                        <div class="price-discounted">€3.50</div>
+                        <div class="price-savings">Save €1.50</div>
+                    </div>
+                    <p class="card-description mb-4">Perfect for day trips</p>
+                    <a href="duration.html" class="btn btn-outline btn-full">Choose Plan</a>
+                </div>
+                
+                <div class="card card-center card-border relative">
+                    <div class="popular-badge">Most Popular</div>
+                    <h3 class="card-title" style="font-size: 1.5rem;">7 Day Pass</h3>
+                    <div style="margin: 24px 0;">
+                        <div class="price-original">€21.43</div>
+                        <div class="price-discounted">€15.00</div>
+                        <div class="price-savings">Save €6.43</div>
+                    </div>
+                    <p class="card-description mb-4">Great for weekly travel</p>
+                    <a href="duration.html" class="btn btn-primary btn-full">Choose Plan</a>
+                </div>
+                
+                <div class="card card-center">
+                    <h3 class="card-title" style="font-size: 1.5rem;">30 Day Pass</h3>
+                    <div style="margin: 24px 0;">
+                        <div class="price-original">€71.43</div>
+                        <div class="price-discounted">€50.00</div>
+                        <div class="price-savings">Save €21.43</div>
+                    </div>
+                    <p class="card-description mb-4">Best value for regular commuters</p>
+                    <a href="duration.html" class="btn btn-outline btn-full">Choose Plan</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="section section-muted">
+        <div class="container">
+            <h2 class="section-title">What Our Customers Say</h2>
+            
+            <div class="grid grid-3">
+                <div class="card">
+                    <div style="margin-bottom: 16px;">⭐⭐⭐⭐⭐</div>
+                    <p class="card-description mb-4">"Fast activation and real savings — I saved €12 on my first week. Super easy."</p>
+                    <div style="display: flex; align-items: center;">
+                        <div style="width: 40px; height: 40px; background: #16a34a; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; color: white; font-weight: bold;">JD</div>
+                        <div>
+                            <p class="font-bold">Jane D.</p>
+                            <p class="text-muted" style="font-size: 0.9rem;">Dublin</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div style="margin-bottom: 16px;">⭐⭐⭐⭐⭐</div>
+                    <p class="card-description mb-4">"Simple checkout, reliable — the pass worked on M50 and other routes."</p>
+                    <div style="display: flex; align-items: center;">
+                        <div style="width: 40px; height: 40px; background: #16a34a; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; color: white; font-weight: bold;">LO</div>
+                        <div>
+                            <p class="font-bold">Liam O.</p>
+                            <p class="text-muted" style="font-size: 0.9rem;">Cork</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div style="margin-bottom: 16px;">⭐⭐⭐⭐⭐</div>
+                    <p class="card-description mb-4">"Great customer service and the 30% discount is real. Highly recommend!"</p>
+                    <div style="display: flex; align-items: center;">
+                        <div style="width: 40px; height: 40px; background: #16a34a; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; color: white; font-weight: bold;">SM</div>
+                        <div>
+                            <p class="font-bold">Sarah M.</p>
+                            <p class="text-muted" style="font-size: 0.9rem;">Galway</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer style="background: #1f2937; color: white; padding: 64px 0 32px;">
+        <div class="container">
+            <div class="grid grid-4">
+                <div>
+                    <div class="logo" style="color: white; margin-bottom: 16px;">
+                        <div class="logo-icon">TP</div>
+                        <span style="font-size: 1.5rem; font-weight: bold;">TravelPass</span>
+                    </div>
+                    <p style="color: #9ca3af;">Save 30% on Irish toll roads with instant digital passes.</p>
+                </div>
+                
+                <div>
+                    <h3 style="font-weight: 600; margin-bottom: 16px;">Product</h3>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <a href="duration.html" style="color: #9ca3af; text-decoration: none;">Pricing</a>
+                        <a href="#" style="color: #9ca3af; text-decoration: none;">How It Works</a>
+                        <a href="#" style="color: #9ca3af; text-decoration: none;">Coverage</a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 style="font-weight: 600; margin-bottom: 16px;">Legal</h3>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <a href="terms.html" style="color: #9ca3af; text-decoration: none;">Terms & Conditions</a>
+                        <a href="privacy-policy.html" style="color: #9ca3af; text-decoration: none;">Privacy Policy</a>
+                        <a href="refund-policy.html" style="color: #9ca3af; text-decoration: none;">Refund Policy</a>
+                        <a href="cookie-policy.html" style="color: #9ca3af; text-decoration: none;">Cookie Policy</a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 style="font-weight: 600; margin-bottom: 16px;">Support</h3>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <a href="contact.html" style="color: #9ca3af; text-decoration: none;">Contact Us</a>
+                        <a href="tel:0818501050" style="color: #9ca3af; text-decoration: none;">0818 501 050</a>
+                        <a href="mailto:support@travel-pass.live" style="color: #9ca3af; text-decoration: none;">support@travel-pass.live</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="border-top: 1px solid #374151; margin-top: 48px; padding-top: 32px; text-align: center; color: #9ca3af;">
+                <p>&copy; 2024 TravelPass Ireland Ltd. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Vehicle lookup simulation
+        document.getElementById('vehicle-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const vehicleReg = document.getElementById('vehicle-reg').value.trim();
+            if (!vehicleReg) return;
+            
+            const findBtn = document.getElementById('find-btn');
+            const resultDiv = document.getElementById('vehicle-result');
+            const detailsDiv = document.getElementById('vehicle-details');
+            
+            findBtn.textContent = 'Finding Vehicle...';
+            findBtn.disabled = true;
+            
+            // Simulate API call
+            setTimeout(() => {
+                // Mock vehicle data
+                const vehicleData = {
+                    registration: vehicleReg.toUpperCase(),
+                    make: 'Toyota',
+                    model: 'Corolla',
+                    color: 'Blue',
+                    engineCapacity: '1.4L'
+                };
+                
+                // Store in localStorage for next page
+                localStorage.setItem('vehicleData', JSON.stringify(vehicleData));
+                
+                detailsDiv.innerHTML = `
+                    <p><strong>Registration:</strong> ${vehicleData.registration}</p>
+                    <p><strong>Make:</strong> ${vehicleData.make}</p>
+                    <p><strong>Model:</strong> ${vehicleData.model}</p>
+                    <p><strong>Colour:</strong> ${vehicleData.color}</p>
+                    <p><strong>Engine:</strong> ${vehicleData.engineCapacity}</p>
+                `;
+                
+                resultDiv.classList.remove('hidden');
+                findBtn.style.display = 'none';
+                
+                // Analytics simulation
+                console.log('Vehicle found:', vehicleData);
+            }, 1500);
+        });
+
+        // Add margin-top to body to account for fixed header
+        document.body.style.paddingTop = '80px';
+    </script>
+</body>
+</html>
