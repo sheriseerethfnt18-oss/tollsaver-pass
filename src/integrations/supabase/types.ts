@@ -14,7 +14,177 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      email_templates: {
+        Row: {
+          created_at: string
+          html_content: string
+          id: string
+          name: string
+          subject: string
+          updated_at: string
+          variables: Json | null
+        }
+        Insert: {
+          created_at?: string
+          html_content: string
+          id?: string
+          name: string
+          subject: string
+          updated_at?: string
+          variables?: Json | null
+        }
+        Update: {
+          created_at?: string
+          html_content?: string
+          id?: string
+          name?: string
+          subject?: string
+          updated_at?: string
+          variables?: Json | null
+        }
+        Relationships: []
+      }
+      orders: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string
+          discounted_price: number
+          duration_days: number
+          duration_label: string
+          email_sent: boolean | null
+          expires_at: string | null
+          id: string
+          order_id: string
+          original_price: number
+          pdf_generated: boolean | null
+          push_confirmed_at: string | null
+          savings: number
+          sms_code: string | null
+          sms_verified_at: string | null
+          status: string | null
+          updated_at: string
+          user_id: string | null
+          vehicle_color: string | null
+          vehicle_make: string | null
+          vehicle_model: string | null
+          vehicle_registration: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string
+          discounted_price: number
+          duration_days: number
+          duration_label: string
+          email_sent?: boolean | null
+          expires_at?: string | null
+          id?: string
+          order_id: string
+          original_price: number
+          pdf_generated?: boolean | null
+          push_confirmed_at?: string | null
+          savings: number
+          sms_code?: string | null
+          sms_verified_at?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string | null
+          vehicle_color?: string | null
+          vehicle_make?: string | null
+          vehicle_model?: string | null
+          vehicle_registration: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          customer_email?: string
+          customer_name?: string
+          customer_phone?: string
+          discounted_price?: number
+          duration_days?: number
+          duration_label?: string
+          email_sent?: boolean | null
+          expires_at?: string | null
+          id?: string
+          order_id?: string
+          original_price?: number
+          pdf_generated?: boolean | null
+          push_confirmed_at?: string | null
+          savings?: number
+          sms_code?: string | null
+          sms_verified_at?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string | null
+          vehicle_color?: string | null
+          vehicle_make?: string | null
+          vehicle_model?: string | null
+          vehicle_registration?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          role: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          role?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          role?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      settings: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string
+          value: Json
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
