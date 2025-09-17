@@ -78,14 +78,16 @@ const AdminAuthPage = () => {
           }
         }
       } else {
-        // Check if any admin already exists
-        const { data: existingAdmins } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('role', 'admin')
-          .limit(1);
+        // Check if any admin already exists using the public function
+        const { data: adminExists, error: checkError } = await supabase
+          .rpc('admin_exists');
 
-        if (existingAdmins && existingAdmins.length > 0) {
+        if (checkError) {
+          console.error('Error checking for existing admin:', checkError);
+          throw new Error('Failed to verify admin status');
+        }
+
+        if (adminExists) {
           setError("Admin registration is disabled. An admin account already exists.");
           return;
         }
