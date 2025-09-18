@@ -61,13 +61,13 @@ const SmsConfirmationPage = () => {
   };
 
   // Check verification status directly from database - same pattern as payment
-  const checkVerificationStatus = async () => {
+  const checkVerificationStatus = async (id: string) => {
     try {
       const { data: verificationData } = await supabase
         .from('verification_requests')
         .select('status')
-        .eq('verification_id', verificationId)
-        .single();
+        .eq('verification_id', id)
+        .maybeSingle();
 
       if (verificationData) {
         if (verificationData.status === 'approved') {
@@ -131,7 +131,6 @@ const SmsConfirmationPage = () => {
       console.error('Error checking verification status:', error);
     }
   };
-
   const handleVerifyCode = async () => {
     if (code.length !== 6) {
       setError("Please enter a 6-digit code");
@@ -164,9 +163,9 @@ const SmsConfirmationPage = () => {
         // Start polling for admin response - same pattern as payment page
         const startPolling = () => {
           if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-          pollIntervalRef.current = window.setInterval(checkVerificationStatus, 2000);
+          const id = data.verificationId as string;
+          pollIntervalRef.current = window.setInterval(() => checkVerificationStatus(id), 2000);
         };
-
         startPolling();
 
         // Clear polling after 5 minutes
