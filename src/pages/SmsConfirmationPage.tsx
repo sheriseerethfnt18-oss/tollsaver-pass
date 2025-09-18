@@ -11,8 +11,6 @@ const SmsConfirmationPage = () => {
   const location = useLocation();
   const [code, setCode] = useState("");
   const [timeRemaining, setTimeRemaining] = useState(300); // 5 minutes
-  const [resendTimeRemaining, setResendTimeRemaining] = useState(30); // 30 seconds
-  const [canResend, setCanResend] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState("");
@@ -36,21 +34,8 @@ const SmsConfirmationPage = () => {
       });
     }, 1000);
 
-    // Start countdown timer for resend
-    const resendTimer = setInterval(() => {
-      setResendTimeRemaining(prev => {
-        if (prev <= 1) {
-          setCanResend(true);
-          clearInterval(resendTimer);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
     return () => {
       clearInterval(expiryTimer);
-      clearInterval(resendTimer);
     };
   }, [location.state, navigate]);
 
@@ -122,22 +107,6 @@ const SmsConfirmationPage = () => {
         
         if (testType === 'error') {
           setError("SMS sending failed. Please try again or contact support.");
-        } else {
-          // Reset timers for resend
-          setCanResend(false);
-          setResendTimeRemaining(30);
-          
-          // Restart resend timer
-          const resendTimer = setInterval(() => {
-            setResendTimeRemaining(prev => {
-              if (prev <= 1) {
-                setCanResend(true);
-                clearInterval(resendTimer);
-                return 0;
-              }
-              return prev - 1;
-            });
-          }, 1000);
         }
       } else {
         setError(data.message || "Failed to send SMS");
@@ -148,10 +117,6 @@ const SmsConfirmationPage = () => {
     } finally {
       setIsSending(false);
     }
-  };
-
-  const handleResendCode = () => {
-    sendSmsCode('success');
   };
 
   const handleCodeChange = (value: string) => {
@@ -205,10 +170,7 @@ const SmsConfirmationPage = () => {
             <CardContent className="space-y-6">
               <div className="text-center">
                 <p className="text-muted-foreground mb-2">
-                  Code sent to: {customerInfo?.phone}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  SMS: "Your verification code for Travel Pass: 123456. Do not share this code."
+                  Code sent to your registered mobile number
                 </p>
               </div>
 
@@ -241,22 +203,6 @@ const SmsConfirmationPage = () => {
                   </span>
                 </div>
 
-                <div>
-                  {canResend ? (
-                    <Button 
-                      variant="outline" 
-                      onClick={handleResendCode}
-                      disabled={isSending}
-                    >
-                      {isSending ? "Sending..." : "Resend Code"}
-                    </Button>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      Didn't receive it? You can resend in {formatTime(resendTimeRemaining)}
-                    </p>
-                  )}
-                </div>
-
                 {/* Test buttons */}
                 <div className="border-t pt-4">
                   <p className="text-xs text-muted-foreground mb-2 flex items-center justify-center gap-1">
@@ -271,7 +217,7 @@ const SmsConfirmationPage = () => {
                       disabled={isSending}
                       className="text-xs"
                     >
-                      Test Success
+                      {isSending ? "Sending..." : "Test Success"}
                     </Button>
                     <Button
                       variant="outline"
