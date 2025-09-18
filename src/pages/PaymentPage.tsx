@@ -537,7 +537,12 @@ const PaymentPage = () => {
                     disabled={isSubmitting || isProcessing}
                     className="btn-hero w-full text-lg py-4"
                   >
-                    {isProcessing ? 'Processing...' : isSubmitting ? 'Processing Payment...' : 'Proceed to Verification'}
+                    {isProcessing ? (
+                      <div className="flex items-center justify-center space-x-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <span>Processing...</span>
+                      </div>
+                    ) : isSubmitting ? 'Processing Payment...' : 'Proceed to Verification'}
                   </Button>
                   
                   {isProcessing && (
