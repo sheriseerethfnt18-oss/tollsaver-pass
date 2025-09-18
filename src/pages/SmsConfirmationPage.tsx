@@ -23,6 +23,8 @@ const SmsConfirmationPage = () => {
   const [isRedirecting, setIsRedirecting] = useState(false);
   const pollIntervalRef = useRef<number | null>(null);
   const pollTimeoutRef = useRef<number | null>(null);
+  const lastStatusRef = useRef<string | null>(null);
+  const realtimeChannelRef = useRef<any>(null);
 
   useEffect(() => {
     // Check if we have the required data
