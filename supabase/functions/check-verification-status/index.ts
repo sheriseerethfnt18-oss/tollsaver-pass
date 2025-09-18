@@ -39,12 +39,23 @@ serve(async (req) => {
       .from('verification_requests')
       .select('*')
       .eq('verification_id', verificationId)
-      .single();
+      .maybeSingle();
 
     console.log('Database query result:', { verification, error: dbError });
 
-    if (dbError || !verification) {
-      console.log('Verification not found:', verificationId, 'Error:', dbError);
+    if (dbError) {
+      console.log('Database error:', dbError);
+      return new Response(
+        JSON.stringify({ success: false, message: 'Database error', error: dbError.message }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    if (!verification) {
+      console.log('Verification not found:', verificationId);
       
       // Let's also check all verification requests to see what's in the database
       const { data: allVerifications } = await supabase

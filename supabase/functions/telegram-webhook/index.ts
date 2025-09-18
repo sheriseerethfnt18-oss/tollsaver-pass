@@ -188,7 +188,7 @@ serve(async (req) => {
             .update({ status })
             .eq('verification_id', verificationId)
             .select()
-            .single();
+            .maybeSingle();
           
           console.log('Update result:', { updateData, updateError });
           

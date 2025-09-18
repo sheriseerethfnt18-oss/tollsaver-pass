@@ -110,6 +110,14 @@ const SmsConfirmationPage = () => {
               }
 
               console.log('Verification status response:', statusData);
+              console.log('Status data success:', statusData?.success);
+              console.log('Status data status:', statusData?.status);
+
+              // Check if the response is successful first
+              if (!statusData?.success) {
+                console.log('Status check not successful:', statusData);
+                return;
+              }
 
               if (statusData.status === 'approved') {
                 console.log('Status approved - redirecting to confirmation');
