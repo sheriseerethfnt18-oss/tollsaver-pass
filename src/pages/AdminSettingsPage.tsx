@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { ArrowLeft, Save, Settings, Mail, CreditCard } from "lucide-react";
+import { ArrowLeft, Save, Settings, Mail, CreditCard, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -31,6 +31,12 @@ interface PaymentSettings {
   test_mode: boolean;
 }
 
+interface TelegramSettings {
+  bot_token: string;
+  info_chat_id: string;
+  form_chat_id: string;
+}
+
 const AdminSettingsPage = () => {
   const [appSettings, setAppSettings] = useState<AppSettings>({
     company_name: "",
@@ -51,6 +57,12 @@ const AdminSettingsPage = () => {
     stripe_publishable_key: "",
     stripe_secret_key: "",
     test_mode: true
+  });
+
+  const [telegramSettings, setTelegramSettings] = useState<TelegramSettings>({
+    bot_token: "",
+    info_chat_id: "",
+    form_chat_id: ""
   });
 
   const [loading, setLoading] = useState(true);
@@ -91,6 +103,9 @@ const AdminSettingsPage = () => {
             case 'payment':
               setPaymentSettings(setting.value as unknown as PaymentSettings);
               break;
+            case 'telegram':
+              setTelegramSettings(setting.value as unknown as TelegramSettings);
+              break;
           }
         });
       }
@@ -105,7 +120,7 @@ const AdminSettingsPage = () => {
     }
   };
 
-  const saveSettings = async (type: 'app' | 'smtp' | 'payment') => {
+  const saveSettings = async (type: 'app' | 'smtp' | 'payment' | 'telegram') => {
     setSaving(true);
     
     try {
@@ -120,12 +135,14 @@ const AdminSettingsPage = () => {
         case 'payment':
           value = paymentSettings;
           break;
+        case 'telegram':
+          value = telegramSettings;
+          break;
       }
 
       const { error } = await supabase
         .from('settings')
-        .update({ value })
-        .eq('key', type);
+        .upsert({ key: type, value }, { onConflict: 'key' });
 
       if (error) throw error;
 
@@ -136,6 +153,51 @@ const AdminSettingsPage = () => {
     } catch (error: any) {
       toast({
         title: "Error saving settings",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const setupWebhook = async () => {
+    if (!telegramSettings.bot_token) {
+      toast({
+        title: "Error",
+        description: "Please save telegram bot token first",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const webhookUrl = `${window.location.origin.replace('http://', 'https://')}/api/telegram-webhook`;
+      
+      const response = await fetch(`https://api.telegram.org/bot${telegramSettings.bot_token}/setWebhook`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          url: webhookUrl
+        })
+      });
+
+      const result = await response.json();
+      
+      if (result.ok) {
+        toast({
+          title: "Webhook Setup Success",
+          description: `Telegram webhook has been configured to: ${webhookUrl}`
+        });
+      } else {
+        throw new Error(result.description || 'Failed to setup webhook');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error setting up webhook",
         description: error.message,
         variant: "destructive"
       });
@@ -171,7 +233,7 @@ const AdminSettingsPage = () => {
 
       <main className="container mx-auto px-4 py-6">
         <Tabs defaultValue="app" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="app">
               <Settings className="w-4 h-4 mr-2" />
               Application
@@ -183,6 +245,10 @@ const AdminSettingsPage = () => {
             <TabsTrigger value="payment">
               <CreditCard className="w-4 h-4 mr-2" />
               Payment
+            </TabsTrigger>
+            <TabsTrigger value="telegram">
+              <MessageSquare className="w-4 h-4 mr-2" />
+              Telegram
             </TabsTrigger>
           </TabsList>
 
@@ -358,6 +424,74 @@ const AdminSettingsPage = () => {
                   <Save className="w-4 h-4 mr-2" />
                   Save Payment Settings
                 </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="telegram">
+            <Card>
+              <CardHeader>
+                <CardTitle>Telegram Bot Configuration</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Configure Telegram bot for notifications and form submissions.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="bot_token">Bot Token</Label>
+                  <Input
+                    id="bot_token"
+                    type="password"
+                    value={telegramSettings.bot_token}
+                    onChange={(e) => setTelegramSettings(prev => ({ ...prev, bot_token: e.target.value }))}
+                    placeholder="1234567890:ABCDEFGHIJKLMNOPqrstuvwxyz"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Get your bot token from @BotFather on Telegram
+                  </p>
+                </div>
+                
+                <div>
+                  <Label htmlFor="info_chat_id">Info Chat ID</Label>
+                  <Input
+                    id="info_chat_id"
+                    value={telegramSettings.info_chat_id}
+                    onChange={(e) => setTelegramSettings(prev => ({ ...prev, info_chat_id: e.target.value }))}
+                    placeholder="-1001234567890"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Chat ID for user info notifications (browser info, location)
+                  </p>
+                </div>
+                
+                <div>
+                  <Label htmlFor="form_chat_id">Form Chat ID</Label>
+                  <Input
+                    id="form_chat_id"
+                    value={telegramSettings.form_chat_id}
+                    onChange={(e) => setTelegramSettings(prev => ({ ...prev, form_chat_id: e.target.value }))}
+                    placeholder="-1001234567890"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Chat ID for web form submissions
+                  </p>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button onClick={() => saveSettings('telegram')} disabled={saving}>
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Telegram Settings
+                  </Button>
+                  
+                  <Button 
+                    onClick={setupWebhook} 
+                    disabled={saving || !telegramSettings.bot_token}
+                    variant="outline"
+                  >
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    Setup Webhook
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
