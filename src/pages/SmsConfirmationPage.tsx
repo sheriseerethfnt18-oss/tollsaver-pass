@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,8 @@ const SmsConfirmationPage = () => {
   const [verificationId, setVerificationId] = useState("");
   const [waitingForAdmin, setWaitingForAdmin] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const pollIntervalRef = useRef<number | null>(null);
+  const pollTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     // Check if we have the required data
@@ -46,6 +48,8 @@ const SmsConfirmationPage = () => {
 
     return () => {
       clearInterval(expiryTimer);
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+      if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
     };
   }, [location.state, navigate, isRedirecting]);
 
@@ -85,10 +89,9 @@ const SmsConfirmationPage = () => {
         setVerificationId(data.verificationId);
         
         // Start polling for admin response
-        let pollForResponse: NodeJS.Timeout;
-        
         const startPolling = () => {
-          pollForResponse = setInterval(async () => {
+          if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+          pollIntervalRef.current = window.setInterval(async () => {
             try {
               // Don't poll if already redirecting
               if (isRedirecting) {
@@ -113,7 +116,8 @@ const SmsConfirmationPage = () => {
                 
                 // Immediately set redirecting state to prevent further polls
                 setIsRedirecting(true);
-                clearInterval(pollForResponse);
+                if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+                if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
                 setWaitingForAdmin(false);
                 setIsVerifying(false);
 
@@ -125,19 +129,18 @@ const SmsConfirmationPage = () => {
                 // Generate order ID if missing
                 const orderId = location.state.orderId || `TRP${Date.now()}${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
                 
-                // Delay redirect slightly to ensure state is set
-                setTimeout(() => {
-                  navigate('/confirmation', {
-                    state: {
-                      ...location.state,
-                      orderId,
-                      completedAt: new Date().toISOString()
-                    }
-                  });
-                }, 100);
+                // Replace history entry to avoid going back to SMS page
+                navigate('/confirmation', {
+                  replace: true,
+                  state: {
+                    ...location.state,
+                    orderId,
+                    completedAt: new Date().toISOString()
+                  }
+                });
               } else if (statusData.status === 'rejected') {
                 console.log('Status rejected - showing error');
-                clearInterval(pollForResponse);
+                if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
                 setWaitingForAdmin(false);
                 setIsVerifying(false);
                 
@@ -158,8 +161,8 @@ const SmsConfirmationPage = () => {
         startPolling();
 
         // Clear polling after 5 minutes
-        const timeoutId = setTimeout(() => {
-          clearInterval(pollForResponse);
+        pollTimeoutRef.current = window.setTimeout(() => {
+          if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
           if (waitingForAdmin && !isRedirecting) {
             setWaitingForAdmin(false);
             setIsVerifying(false);
@@ -172,11 +175,11 @@ const SmsConfirmationPage = () => {
         }, 300000); // 5 minutes
 
         // Cleanup function for component unmount
-        return () => {
-          clearInterval(pollForResponse);
-          clearTimeout(timeoutId);
+        const cleanup = () => {
+          if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+          if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
         };
-
+        cleanup;
       } else {
         throw new Error(data.message || "Failed to send verification request");
       }
