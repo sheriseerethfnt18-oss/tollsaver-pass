@@ -155,6 +155,13 @@ const SmsConfirmationPage = () => {
                     completedAt: new Date().toISOString()
                   }
                 });
+                
+                // Hard redirect fallback if SPA navigation fails for any reason
+                setTimeout(() => {
+                  if (!window.location.pathname.includes('/confirmation')) {
+                    window.location.assign(`/confirmation?oid=${orderId}`);
+                  }
+                }, 500);
               } else if (statusData.status === 'rejected') {
                 console.log('Status rejected - showing error');
                 if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
