@@ -81,6 +81,7 @@ const SmsConfirmationPage = () => {
         // Start polling for admin response
         const pollForResponse = setInterval(async () => {
           try {
+            console.log('Polling verification status for:', data.verificationId);
             const { data: statusData, error: statusError } = await supabase.functions.invoke('check-verification-status', {
               body: { verificationId: data.verificationId }
             });
@@ -90,7 +91,10 @@ const SmsConfirmationPage = () => {
               return;
             }
 
+            console.log('Verification status response:', statusData);
+
             if (statusData.status === 'approved') {
+              console.log('Status approved - redirecting to confirmation');
               clearInterval(pollForResponse);
               setWaitingForAdmin(false);
               setIsVerifying(false);
@@ -104,6 +108,7 @@ const SmsConfirmationPage = () => {
                 state: location.state
               });
             } else if (statusData.status === 'rejected') {
+              console.log('Status rejected - showing error');
               clearInterval(pollForResponse);
               setWaitingForAdmin(false);
               setIsVerifying(false);
