@@ -42,13 +42,21 @@ const DurationPage = () => {
 
   useEffect(() => {
     // Try to get vehicle data from navigation state first, then cookies
-    const vehicleData = location.state?.vehicle || getVehicleData();
+    const stateVehicle = location.state?.vehicle;
+    const cookieVehicle = getVehicleData();
+    
+    console.log('DurationPage - Navigation state vehicle:', stateVehicle);
+    console.log('DurationPage - Cookie vehicle:', cookieVehicle);
+    
+    const vehicleData = stateVehicle || cookieVehicle;
     
     if (vehicleData) {
+      console.log('DurationPage - Using vehicle data:', vehicleData);
       setVehicle(vehicleData);
       // Ensure data is saved to cookies
       saveVehicleData(vehicleData);
     } else {
+      console.log('DurationPage - No vehicle data found, redirecting to homepage');
       // Redirect to homepage if no vehicle data
       navigate('/');
     }
@@ -83,11 +91,22 @@ const DurationPage = () => {
   if (!vehicle) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center space-y-4">
           <p className="text-xl mb-4">Loading vehicle information...</p>
-          <Button onClick={() => navigate('/')} variant="outline">
-            Return to Homepage
-          </Button>
+          <p className="text-sm text-muted-foreground">
+            If this takes too long, please go back and re-enter your vehicle details.
+          </p>
+          <div className="space-x-4">
+            <Button onClick={() => navigate('/')} variant="outline">
+              Return to Homepage
+            </Button>
+            <Button 
+              onClick={() => window.location.reload()} 
+              variant="ghost"
+            >
+              Refresh Page
+            </Button>
+          </div>
         </div>
       </div>
     );

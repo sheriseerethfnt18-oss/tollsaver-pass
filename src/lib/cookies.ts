@@ -39,8 +39,21 @@ const getCookieExpiry = (): string => {
 
 // Generic cookie functions
 const setCookie = (name: string, value: string, expires?: string): void => {
-  const expiry = expires || getCookieExpiry();
-  document.cookie = `${name}=${value}; expires=${expiry}; path=/; SameSite=Strict`;
+  try {
+    const expiry = expires || getCookieExpiry();
+    // More permissive cookie settings to work across different scenarios
+    document.cookie = `${name}=${value}; expires=${expiry}; path=/; SameSite=Lax`;
+    
+    // Verify the cookie was set
+    const verification = getCookie(name);
+    if (!verification) {
+      console.warn(`Failed to set cookie: ${name}`);
+      // Try setting without SameSite as fallback
+      document.cookie = `${name}=${value}; expires=${expiry}; path=/`;
+    }
+  } catch (error) {
+    console.error('Error setting cookie:', error);
+  }
 };
 
 const getCookie = (name: string): string | null => {
