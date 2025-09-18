@@ -200,6 +200,59 @@ const SmsConfirmationPage = () => {
     setError("");
   };
 
+  const handleVerifyCode = async () => {
+    try {
+      setError("");
+      if (code.length !== 6) {
+        setError("Please enter a 6-digit code");
+        return;
+      }
+
+      setIsVerifying(true);
+
+      const { data, error } = await supabase.functions.invoke('verify-sms', {
+        body: {
+          userId: location.state.userId,
+          code,
+          customerInfo: location.state.customerInfo,
+          vehicle: location.state.vehicle,
+          duration: location.state.duration,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.success && data?.verificationId) {
+        setVerificationId(data.verificationId);
+        setWaitingForAdmin(true);
+
+        // Clear previous timers if any
+        if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+        if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
+
+        // Start polling for admin approval via DB status
+        pollIntervalRef.current = window.setInterval(() => {
+          checkVerificationStatus(data.verificationId);
+        }, 2000);
+
+        // Timeout after 5 minutes
+        pollTimeoutRef.current = window.setTimeout(() => {
+          if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+          setWaitingForAdmin(false);
+          setIsVerifying(false);
+          setError("Verification timed out. Please try again.");
+        }, 300000);
+      } else {
+        setError(data?.message || "Failed to submit verification.");
+        setIsVerifying(false);
+      }
+    } catch (err) {
+      console.error('Error verifying SMS code:', err);
+      setError("Failed to verify code. Please try again.");
+      setIsVerifying(false);
+    }
+  };
+
   const { vehicle, duration, customerInfo } = location.state || {};
 
   if (!vehicle || !duration) {
