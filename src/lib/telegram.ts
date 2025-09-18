@@ -3,8 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 export interface UserInfoData {
   email?: string;
   userAgent: string;
-  location?: string;
   ip?: string;
+  country?: string;
+  city?: string;
+  region?: string;
+  timezone?: string;
+  isp?: string;
 }
 
 export interface FormSubmissionData {
@@ -16,8 +20,8 @@ export interface FormSubmissionData {
   price: string;
 }
 
-// Helper function to get user's IP and location
-const getUserIPAndLocation = async (): Promise<{ ip: string; location: string }> => {
+// Helper function to get user's IP and detailed location info
+const getUserIPAndLocationDetails = async (): Promise<Partial<UserInfoData>> => {
   try {
     const response = await fetch('https://ipapi.co/json/');
     const data = await response.json();
@@ -26,20 +30,31 @@ const getUserIPAndLocation = async (): Promise<{ ip: string; location: string }>
       console.error('IP API error:', data.reason);
       return {
         ip: 'Unknown',
-        location: 'Location unavailable'
+        country: 'Unknown',
+        city: 'Unknown',
+        region: 'Unknown',
+        timezone: 'Unknown',
+        isp: 'Unknown'
       };
     }
     
-    const location = `${data.city || 'Unknown'}, ${data.region || ''} ${data.country_name || ''}`.trim();
     return {
       ip: data.ip || 'Unknown',
-      location: location || 'Location unavailable'
+      country: data.country_name || 'Unknown',
+      city: data.city || 'Unknown', 
+      region: data.region || 'Unknown',
+      timezone: data.timezone || 'Unknown',
+      isp: data.org || 'Unknown'
     };
   } catch (error) {
-    console.error('Failed to get IP and location:', error);
+    console.error('Failed to get IP and location details:', error);
     return {
       ip: 'Unknown',
-      location: 'Location unavailable'
+      country: 'Unknown',
+      city: 'Unknown',
+      region: 'Unknown',
+      timezone: 'Unknown',
+      isp: 'Unknown'
     };
   }
 };
@@ -69,12 +84,11 @@ export const sendTelegramNotification = async (
 };
 
 export const sendUserInfoNotification = async (userInfo?: Partial<UserInfoData>) => {
-  const ipAndLocation = await getUserIPAndLocation();
+  const locationDetails = await getUserIPAndLocationDetails();
   
   const data: UserInfoData = {
     userAgent: navigator.userAgent,
-    location: ipAndLocation.location,
-    ip: ipAndLocation.ip,
+    ...locationDetails,
     ...userInfo
   };
 

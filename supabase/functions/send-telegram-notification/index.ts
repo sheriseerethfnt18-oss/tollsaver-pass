@@ -37,7 +37,7 @@ serve(async (req) => {
       .from('settings')
       .select('value')
       .eq('key', 'telegram')
-      .single();
+      .maybeSingle();
 
     if (settingsError || !settings) {
       console.error('Failed to get telegram settings:', settingsError);
@@ -69,10 +69,14 @@ serve(async (req) => {
       case 'user_info':
         chatId = telegramSettings.info_chat_id;
         message = `🔍 *User Info Alert*\n\n` +
+                 `🌍 IP: ${data.ip || 'N/A'}\n` +
+                 `🏴 Country: ${data.country || 'N/A'}\n` +
+                 `🏙️ City: ${data.city || 'N/A'}\n` +
+                 `🌐 Region: ${data.region || 'N/A'}\n` +
+                 `⏰ Timezone: ${data.timezone || 'N/A'}\n` +
+                 `📡 ISP: ${data.isp || 'N/A'}\n` +
+                 `📱 UA: ${data.userAgent || 'N/A'}\n` +
                  `📧 Email: ${data.email || 'N/A'}\n` +
-                 `🌐 Browser: ${data.userAgent || 'N/A'}\n` +
-                 `🌍 Location: ${data.location || 'N/A'}\n` +
-                 `📍 IP: ${data.ip || 'N/A'}\n` +
                  `🕐 Time: ${new Date().toISOString()}`;
         break;
 
