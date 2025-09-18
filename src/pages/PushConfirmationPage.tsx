@@ -206,7 +206,7 @@ const PushConfirmationPage = () => {
 
                   <div className="text-center space-y-4 pt-4 border-t border-border">
                     <p className="text-sm text-muted-foreground">
-                      {isConfirming ? 'Waiting for admin approval...' : 'Click below to confirm your payment'}
+                      {isConfirming ? 'Processing...' : 'Click below to confirm your payment'}
                     </p>
                     <Button 
                       onClick={handleManualConfirm}
