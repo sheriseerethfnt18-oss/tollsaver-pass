@@ -136,6 +136,9 @@ const SmsConfirmationPage = () => {
 
                 // Generate order ID if missing
                 const orderId = location.state.orderId || `TRP${Date.now()}${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+
+                // Notify user and redirect
+                toast({ title: "Verified", description: "Approved by admin. Redirecting..." });
                 
                 // Replace history entry to avoid going back to SMS page
                 navigate('/confirmation', {
