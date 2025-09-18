@@ -11,6 +11,7 @@ const PushConfirmationPage = () => {
   const [isWaiting, setIsWaiting] = useState(true);
   const [timeWaiting, setTimeWaiting] = useState(0);
   const [showManualConfirm, setShowManualConfirm] = useState(true);
+  const [isConfirming, setIsConfirming] = useState(false);
 
   useEffect(() => {
     // Check if we have the required data
@@ -24,17 +25,41 @@ const PushConfirmationPage = () => {
       setTimeWaiting(prev => prev + 1);
     }, 1000);
 
-    // Simulate automatic approval after random time (30-90 seconds for demo)
-    const approvalTime = Math.random() * 60000 + 30000; // 30-90 seconds
-    const approvalTimer = setTimeout(() => {
-      handleApprovalReceived();
-    }, approvalTime);
+    // Poll for admin response every 3 seconds
+    const pollTimer = setInterval(async () => {
+      if (isConfirming) {
+        try {
+          const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/check-verification-status`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify({
+              userId: location.state?.userId
+            })
+          });
+          
+          const result = await response.json();
+          
+          if (result.status === 'approved') {
+            handleApprovalReceived();
+          } else if (result.status === 'error') {
+            // Handle error case
+            setIsConfirming(false);
+            // Could show error message here
+          }
+        } catch (error) {
+          console.error('Error checking status:', error);
+        }
+      }
+    }, 3000);
 
     return () => {
-      clearTimeout(approvalTimer);
       clearInterval(waitingTimer);
+      clearInterval(pollTimer);
     };
-  }, [location.state, navigate]);
+  }, [location.state, navigate, isConfirming]);
 
   const handleApprovalReceived = () => {
     setIsWaiting(false);
@@ -59,8 +84,10 @@ const PushConfirmationPage = () => {
   };
 
   const handleManualConfirm = async () => {
+    setIsConfirming(true);
+    
     try {
-      // Call the complete-order edge function
+      // Call the complete-order edge function to send Telegram notification
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/complete-order`, {
         method: 'POST',
         headers: {
@@ -74,17 +101,14 @@ const PushConfirmationPage = () => {
 
       const result = await response.json();
       
-      if (result.success) {
-        handleApprovalReceived();
-      } else {
-        console.error('Failed to complete order:', result.error);
-        // Still proceed for demo purposes
-        handleApprovalReceived();
+      if (!result.success) {
+        console.error('Failed to send notification:', result.error);
+        setIsConfirming(false);
       }
+      // Don't proceed automatically - wait for admin response via polling
     } catch (error) {
-      console.error('Error completing order:', error);
-      // Still proceed for demo purposes
-      handleApprovalReceived();
+      console.error('Error sending notification:', error);
+      setIsConfirming(false);
     }
   };
 
@@ -175,14 +199,15 @@ const PushConfirmationPage = () => {
 
                   <div className="text-center space-y-4 pt-4 border-t border-border">
                     <p className="text-sm text-muted-foreground">
-                      Click below to confirm your payment
+                      {isConfirming ? 'Waiting for admin approval...' : 'Click below to confirm your payment'}
                     </p>
                     <Button 
                       onClick={handleManualConfirm}
                       variant="default"
                       className="w-full"
+                      disabled={isConfirming}
                     >
-                      Confirm Payment
+                      {isConfirming ? 'Confirming...' : 'Confirm Payment'}
                     </Button>
                   </div>
                 </>
