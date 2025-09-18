@@ -263,7 +263,7 @@ const SmsConfirmationPage = () => {
                 {isVerifying ? (
                   <div className="flex items-center gap-2">
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    {waitingForAdmin ? "Waiting for Admin Confirmation..." : "Verification"}
+                    Verification
                   </div>
                 ) : (
                   "Verify Code"
