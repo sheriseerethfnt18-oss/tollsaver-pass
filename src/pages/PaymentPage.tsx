@@ -540,7 +540,7 @@ const PaymentPage = () => {
                     {isProcessing ? (
                       <div className="flex items-center justify-center space-x-2">
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        <span>Processing...</span>
+                        <span>Processing payment...</span>
                       </div>
                     ) : isSubmitting ? 'Processing Payment...' : 'Proceed to Verification'}
                   </Button>
