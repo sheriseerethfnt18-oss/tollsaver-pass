@@ -248,6 +248,45 @@ export type Database = {
         }
         Relationships: []
       }
+      verification_requests: {
+        Row: {
+          code: string
+          created_at: string
+          customer_info: Json
+          duration: Json
+          id: string
+          status: string
+          updated_at: string
+          user_id: string
+          vehicle: Json
+          verification_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          customer_info: Json
+          duration: Json
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          vehicle: Json
+          verification_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          customer_info?: Json
+          duration?: Json
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          vehicle?: Json
+          verification_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

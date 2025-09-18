@@ -1,16 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
-
-// Global store for verification statuses (shared concept, but separate instance)
-// In production, this should be stored in a database
-let verificationStatuses = new Map<string, {
-  status: 'pending' | 'approved' | 'rejected',
-  timestamp: number
-}>();
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -19,6 +13,11 @@ serve(async (req) => {
   }
 
   try {
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+
     const { verificationId } = await req.json();
 
     console.log('Checking verification status for:', verificationId);
@@ -33,19 +32,52 @@ serve(async (req) => {
       );
     }
 
-    // Since we can't share state between edge functions, 
-    // we'll need to implement a database-based approach
-    // For now, we'll use a simple HTTP endpoint approach
+    // Get verification from database
+    const { data: verification, error: dbError } = await supabase
+      .from('verification_requests')
+      .select('*')
+      .eq('verification_id', verificationId)
+      .single();
+
+    if (dbError || !verification) {
+      console.log('Verification not found:', verificationId);
+      return new Response(
+        JSON.stringify({ success: false, message: 'Verification not found' }),
+        { 
+          status: 404, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // Check if verification has expired (5 minutes)
+    const now = new Date();
+    const createdAt = new Date(verification.created_at);
+    const fiveMinutes = 5 * 60 * 1000;
     
-    // Try to get verification status from telegram webhook function
-    // This is a workaround for the state sharing limitation
-    console.log('Verification not found in local store, returning pending');
+    if (now.getTime() - createdAt.getTime() > fiveMinutes && verification.status === 'pending') {
+      // Update status to expired
+      await supabase
+        .from('verification_requests')
+        .update({ status: 'expired' })
+        .eq('verification_id', verificationId);
+        
+      return new Response(
+        JSON.stringify({ success: true, status: 'expired' }),
+        { 
+          status: 200, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    console.log('Verification status:', verification.status);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        status: 'pending',
-        timestamp: Date.now()
+        status: verification.status,
+        timestamp: verification.created_at
       }),
       { 
         status: 200, 

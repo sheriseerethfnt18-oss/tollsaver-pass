@@ -7,13 +7,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Global store for verification statuses
-// In production, this should be stored in a database
-const verificationStatuses = new Map<string, {
-  status: 'pending' | 'approved' | 'rejected',
-  timestamp: number
-}>();
-
 interface TelegramSettings {
   bot_token: string;
   info_chat_id: string;
@@ -179,14 +172,21 @@ serve(async (req) => {
           
           console.log(`Processing verification ${verificationId} with action ${action}`);
           
-          // Update verification status in global store
+          // Update verification status in database
           const status = action === 'approve' ? 'approved' : 'rejected';
-          verificationStatuses.set(verificationId, {
-            status,
-            timestamp: Date.now()
-          });
           
-          console.log(`Verification ${verificationId} status updated to: ${status}`);
+          const { data: updateData, error: updateError } = await supabaseClient
+            .from('verification_requests')
+            .update({ status })
+            .eq('verification_id', verificationId)
+            .select()
+            .single();
+          
+          if (updateError) {
+            console.error('Error updating verification status:', updateError);
+          } else {
+            console.log(`Verification ${verificationId} status updated to: ${status}`);
+          }
           
           // Send confirmation message back to admin
           const confirmationMessages = {
