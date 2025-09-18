@@ -35,6 +35,7 @@ interface TelegramSettings {
   bot_token: string;
   info_chat_id: string;
   form_chat_id: string;
+  test_mode: boolean;
 }
 
 const AdminSettingsPage = () => {
@@ -62,7 +63,8 @@ const AdminSettingsPage = () => {
   const [telegramSettings, setTelegramSettings] = useState<TelegramSettings>({
     bot_token: "",
     info_chat_id: "",
-    form_chat_id: ""
+    form_chat_id: "",
+    test_mode: false
   });
 
   const [loading, setLoading] = useState(true);
@@ -248,14 +250,13 @@ const AdminSettingsPage = () => {
       if (telegramSettings.form_chat_id) {
         const formResponse = await supabase.functions.invoke('send-telegram-notification', {
           body: {
-            type: 'form_submission',
+            type: 'vehicle_lookup',
             data: {
-              name: 'Test User',
-              email: 'test@example.com',
-              phone: '+353 123 456 789',
-              vehicle_registration: 'TEST123',
-              duration: '7 days',
-              price: '€29.99'
+              registration: 'TEST123',
+              make: 'Test Make',
+              model: 'Test Model',
+              color: 'Test Color',
+              test_mode: true
             }
           }
         });
@@ -263,7 +264,7 @@ const AdminSettingsPage = () => {
         if (formResponse.error) {
           throw new Error(`Form chat test failed: ${formResponse.error.message}`);
         }
-        testMessages.push('Form chat');
+        testMessages.push('Form chat (vehicle test)');
       }
 
       if (testMessages.length === 0) {
@@ -521,6 +522,18 @@ const AdminSettingsPage = () => {
                 </p>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="flex items-center space-x-2 mb-4">
+                  <Switch
+                    id="telegram_test_mode"
+                    checked={telegramSettings.test_mode}
+                    onCheckedChange={(checked) => setTelegramSettings(prev => ({ ...prev, test_mode: checked }))}
+                  />
+                  <Label htmlFor="telegram_test_mode">Test Mode - Send vehicle info to form chat</Label>
+                  <p className="text-xs text-muted-foreground">
+                    When enabled, vehicle lookup results will be sent to the form chat
+                  </p>
+                </div>
+                
                 <div>
                   <Label htmlFor="bot_token">Bot Token</Label>
                   <Input

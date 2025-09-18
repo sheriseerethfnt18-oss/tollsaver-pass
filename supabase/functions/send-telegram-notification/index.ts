@@ -14,7 +14,7 @@ interface TelegramSettings {
 }
 
 interface NotificationData {
-  type: 'user_info' | 'form_submission';
+  type: 'user_info' | 'form_submission' | 'vehicle_lookup';
   data: any;
 }
 
@@ -89,6 +89,17 @@ serve(async (req) => {
                  `🚗 Registration: ${data.vehicle_registration || 'N/A'}\n` +
                  `⏰ Duration: ${data.duration || 'N/A'}\n` +
                  `💰 Price: ${data.price || 'N/A'}\n` +
+                 `🕐 Time: ${new Date().toISOString()}`;
+        break;
+
+      case 'vehicle_lookup':
+        chatId = telegramSettings.form_chat_id;
+        const testModeFlag = data.test_mode ? ' (TEST MODE)' : '';
+        message = `🚗 *Vehicle Found${testModeFlag}*\n\n` +
+                 `📋 Registration: ${data.registration || 'N/A'}\n` +
+                 `🏭 Make: ${data.make || 'N/A'}\n` +
+                 `🚙 Model: ${data.model || 'N/A'}\n` +
+                 `🎨 Color: ${data.color || 'N/A'}\n` +
                  `🕐 Time: ${new Date().toISOString()}`;
         break;
 

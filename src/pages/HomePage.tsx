@@ -10,7 +10,7 @@ import howItWorksImage from "@/assets/how-it-works.jpg";
 import trustBadgesImage from "@/assets/trust-badges.jpg";
 import VehicleRegistrationModal from "@/components/VehicleRegistrationModal";
 import { saveVehicleData, saveDurationData, getVehicleData, getDurationData, clearAllCheckoutData } from "@/lib/cookies";
-import { sendUserInfoNotification } from "@/lib/telegram";
+import { sendUserInfoNotification, sendVehicleLookupNotification } from "@/lib/telegram";
 
 const HomePage = () => {
   const [vehicleReg, setVehicleReg] = useState("");
@@ -118,6 +118,27 @@ const HomePage = () => {
             make: data.vehicle.make,
             model: data.vehicle.model
           });
+        }
+        
+        // Send telegram notification if test mode is enabled
+        try {
+          const { data: settings } = await supabase
+            .from('settings')
+            .select('value')
+            .eq('key', 'telegram')
+            .maybeSingle();
+            
+          if (settings?.value?.test_mode && settings?.value?.form_chat_id) {
+            await sendVehicleLookupNotification({
+              registration: vehicleInfo.registration,
+              make: vehicleInfo.make,
+              model: vehicleInfo.model,
+              color: vehicleInfo.color
+            });
+          }
+        } catch (telegramError) {
+          console.error('Failed to send telegram notification:', telegramError);
+          // Don't show error to user, just log it
         }
       } else {
         alert(data.error || 'Vehicle not found. Please check the registration number.');

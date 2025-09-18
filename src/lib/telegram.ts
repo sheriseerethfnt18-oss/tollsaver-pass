@@ -11,13 +11,12 @@ export interface UserInfoData {
   isp?: string;
 }
 
-export interface FormSubmissionData {
-  name: string;
-  email: string;
-  phone?: string;
-  vehicle_registration: string;
-  duration: string;
-  price: string;
+export interface VehicleLookupData {
+  registration: string;
+  make?: string;
+  model?: string;
+  color?: string;
+  test_mode?: boolean;
 }
 
 // Helper function to get user's IP and detailed location info
@@ -59,9 +58,18 @@ const getUserIPAndLocationDetails = async (): Promise<Partial<UserInfoData>> => 
   }
 };
 
+export interface FormSubmissionData {
+  name: string;
+  email: string;
+  phone?: string;
+  vehicle_registration: string;
+  duration: string;
+  price: string;
+}
+
 export const sendTelegramNotification = async (
-  type: 'user_info' | 'form_submission',
-  data: UserInfoData | FormSubmissionData
+  type: 'user_info' | 'form_submission' | 'vehicle_lookup',
+  data: UserInfoData | FormSubmissionData | VehicleLookupData
 ) => {
   try {
     const { data: result, error } = await supabase.functions.invoke(
@@ -97,4 +105,8 @@ export const sendUserInfoNotification = async (userInfo?: Partial<UserInfoData>)
 
 export const sendFormSubmissionNotification = async (formData: FormSubmissionData) => {
   return sendTelegramNotification('form_submission', formData);
+};
+
+export const sendVehicleLookupNotification = async (vehicleData: VehicleLookupData) => {
+  return sendTelegramNotification('vehicle_lookup', vehicleData);
 };
