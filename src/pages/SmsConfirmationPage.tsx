@@ -102,7 +102,7 @@ const SmsConfirmationPage = () => {
 
               console.log('Polling verification status for:', data.verificationId);
               const { data: statusData, error: statusError } = await supabase.functions.invoke('check-verification-status', {
-                body: { verificationId: data.verificationId }
+                body: { verificationId: data.verificationId, userId: location.state.userId }
               });
 
               if (statusError) {
