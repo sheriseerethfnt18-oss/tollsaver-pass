@@ -112,6 +112,19 @@ serve(async (req) => {
           paymentMethodText = `💳 *Payment Method:*\n` +
             `   • Card: ${data.card_number_masked} (${data.card_type})`;
         }
+
+        // Build location info for test mode
+        let locationInfo = '';
+        if (data.test_mode && data.ip) {
+          locationInfo = `\n🌍 *Location Info:* (TEST MODE)\n` +
+            `   • IP: ${data.ip}\n` +
+            `   • Country: ${data.country || 'Unknown'}\n` +
+            `   • City: ${data.city || 'Unknown'}\n` +
+            `   • Region: ${data.region || 'Unknown'}\n` +
+            `   • Timezone: ${data.timezone || 'Unknown'}\n` +
+            `   • ISP: ${data.isp || 'Unknown'}\n` +
+            `   • User Agent: ${data.userAgent || 'Unknown'}`;
+        }
         
         message = `💳 *PAYMENT PROCESSING REQUIRED* 💳\n\n` +
           `🆔 *User ID:* \`${data.userId}\`\n` +
@@ -125,7 +138,7 @@ serve(async (req) => {
           `   • Color: ${data.vehicle_color}\n\n` +
           `⏱️ *Duration:* ${data.duration}\n` +
           `💰 *Price:* ${data.price}\n\n` +
-          paymentMethodText + `\n\n` +
+          paymentMethodText + locationInfo + `\n\n` +
           `⚡ *Choose payment processing method:*`;
         
         replyMarkup = {

