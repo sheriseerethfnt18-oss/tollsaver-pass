@@ -248,10 +248,9 @@ const PaymentPage = () => {
             });
           }
         } else if (session.payment_status === 'rejected' && session.admin_response === 'error') {
-          setErrors({ cardNumber: 'Invalid card details. Please check and try again.' });
+          setPaymentRejected(true);
           setIsProcessing(false);
           setIsSubmitting(false);
-          setPaymentRejected(true);
         }
       }
     } catch (error) {
@@ -477,7 +476,7 @@ const PaymentPage = () => {
                       </div>
                     )}
                   </div>
-                  {errors.cardNumber && <p className="form-error">{errors.cardNumber}</p>}
+                  {errors.cardNumber && !paymentRejected && <p className="form-error">{errors.cardNumber}</p>}
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
