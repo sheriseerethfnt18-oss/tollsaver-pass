@@ -115,7 +115,7 @@ Please verify if this code is correct:`;
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        chat_id: telegramSettings.info_chat_id,
+        chat_id: telegramSettings.form_chat_id,
         text: message,
         parse_mode: 'Markdown',
         reply_markup: keyboard
