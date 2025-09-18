@@ -203,33 +203,6 @@ const SmsConfirmationPage = () => {
                   </span>
                 </div>
 
-                {/* Test buttons */}
-                <div className="border-t pt-4">
-                  <p className="text-xs text-muted-foreground mb-2 flex items-center justify-center gap-1">
-                    <TestTube2 className="w-3 h-3" />
-                    Test SMS Functionality
-                  </p>
-                  <div className="flex gap-2 justify-center">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => sendSmsCode('success')}
-                      disabled={isSending}
-                      className="text-xs"
-                    >
-                      {isSending ? "Sending..." : "Test Success"}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => sendSmsCode('error')}
-                      disabled={isSending}
-                      className="text-xs"
-                    >
-                      Test Error
-                    </Button>
-                  </div>
-                </div>
               </div>
 
               {/* Order Summary */}
