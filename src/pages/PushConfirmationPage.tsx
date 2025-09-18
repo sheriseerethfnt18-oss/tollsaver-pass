@@ -25,7 +25,7 @@ const PushConfirmationPage = () => {
       setTimeWaiting(prev => Math.max(0, prev - 1)); // Count down to 0
     }, 1000);
 
-    // Poll for admin response every 3 seconds, but only when waiting for confirmation
+    // Poll for admin response every 3 seconds, but only after confirmation button is clicked
     const pollTimer = setInterval(async () => {
       if (isConfirming) {
         try {
@@ -35,13 +35,14 @@ const PushConfirmationPage = () => {
             .eq('user_id', location.state?.userId)
             .maybeSingle();
           
-          if (session?.payment_status === 'approved') {
+          console.log('Polling payment session:', session);
+          
+          if (session?.payment_status === 'approved' && session?.admin_response === 'accept') {
             clearInterval(pollTimer);
             handleApprovalReceived();
           } else if (session?.payment_status === 'declined' || session?.admin_response === 'error') {
             clearInterval(pollTimer);
             setIsConfirming(false);
-            // Show error message to user
             console.log('Payment was declined by admin');
           }
         } catch (error) {
