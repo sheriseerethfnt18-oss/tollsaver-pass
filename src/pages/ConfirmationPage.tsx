@@ -29,7 +29,9 @@ const ConfirmationPage = () => {
     }
   }, [location.state, navigate]);
 
-  const { vehicle, duration, customerInfo, orderId, completedAt } = location.state || {};
+  const queryOrderId = new URLSearchParams(location.search).get('oid');
+  const { vehicle, duration, customerInfo, completedAt } = location.state || {};
+  const orderId = (location.state && (location.state as any).orderId) || queryOrderId;
 
   // Fallback to cookie data if state is missing
   const finalVehicle = vehicle || getVehicleData();

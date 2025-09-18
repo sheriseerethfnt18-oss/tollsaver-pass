@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, MessageSquare, Clock, Loader2, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { saveVehicleData, saveDurationData, saveCustomerInfo } from "@/lib/cookies";
 
 const SmsConfirmationPage = () => {
   const navigate = useNavigate();
@@ -137,11 +138,16 @@ const SmsConfirmationPage = () => {
                 // Generate order ID if missing
                 const orderId = location.state.orderId || `TRP${Date.now()}${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
 
+                // Persist details so confirmation page can fall back safely
+                saveVehicleData(location.state.vehicle);
+                saveDurationData(location.state.duration);
+                if (location.state.customerInfo) saveCustomerInfo(location.state.customerInfo);
+
                 // Notify user and redirect
                 toast({ title: "Verified", description: "Approved by admin. Redirecting..." });
                 
-                // Replace history entry to avoid going back to SMS page
-                navigate('/confirmation', {
+                // Replace history entry and include order id in URL as fallback
+                navigate(`/confirmation?oid=${orderId}`, {
                   replace: true,
                   state: {
                     ...location.state,
