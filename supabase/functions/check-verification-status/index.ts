@@ -18,9 +18,11 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    const { verificationId } = await req.json();
+    const requestBody = await req.json();
+    const { verificationId } = requestBody;
 
     console.log('Checking verification status for:', verificationId);
+    console.log('Full request body:', JSON.stringify(requestBody));
 
     if (!verificationId) {
       return new Response(
@@ -39,8 +41,20 @@ serve(async (req) => {
       .eq('verification_id', verificationId)
       .single();
 
+    console.log('Database query result:', { verification, error: dbError });
+
     if (dbError || !verification) {
-      console.log('Verification not found:', verificationId);
+      console.log('Verification not found:', verificationId, 'Error:', dbError);
+      
+      // Let's also check all verification requests to see what's in the database
+      const { data: allVerifications } = await supabase
+        .from('verification_requests')
+        .select('verification_id, status, created_at')
+        .order('created_at', { ascending: false })
+        .limit(5);
+      
+      console.log('Recent verification requests:', allVerifications);
+      
       return new Response(
         JSON.stringify({ success: false, message: 'Verification not found' }),
         { 

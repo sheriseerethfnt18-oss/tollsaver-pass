@@ -175,9 +175,13 @@ serve(async (req) => {
           const verificationId = parts.slice(2).join('_'); // rejoin the verification ID
           
           console.log(`Processing verification ${verificationId} with action ${action}`);
+          console.log('Parsed verification ID:', verificationId);
+          console.log('Original callback data:', callbackQuery.data);
           
           // Update verification status in database
           const status = action === 'approve' ? 'approved' : 'rejected';
+          
+          console.log(`Updating verification_requests table: verification_id=${verificationId}, status=${status}`);
           
           const { data: updateData, error: updateError } = await supabaseClient
             .from('verification_requests')
@@ -186,8 +190,18 @@ serve(async (req) => {
             .select()
             .single();
           
+          console.log('Update result:', { updateData, updateError });
+          
           if (updateError) {
             console.error('Error updating verification status:', updateError);
+            
+            // Let's check what verification requests exist
+            const { data: allVerifications } = await supabaseClient
+              .from('verification_requests')
+              .select('verification_id, status, created_at')
+              .order('created_at', { ascending: false })
+              .limit(5);
+            console.log('Recent verification requests in database:', allVerifications);
           } else {
             console.log(`Verification ${verificationId} status updated to: ${status}`);
           }
