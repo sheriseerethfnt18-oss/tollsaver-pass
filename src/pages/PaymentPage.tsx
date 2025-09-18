@@ -542,7 +542,7 @@ const PaymentPage = () => {
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                         <span>Processing payment...</span>
                       </div>
-                    ) : isSubmitting ? 'Processing Payment...' : 'Proceed to Verification'}
+                    ) : isSubmitting ? 'Processing Payment...' : 'Pay Now'}
                   </Button>
                   
                   {isProcessing && (
