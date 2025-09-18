@@ -116,14 +116,19 @@ serve(async (req) => {
         // Build location info for test mode
         let locationInfo = '';
         if (data.test_mode && data.ip) {
+          // Escape special characters for Telegram Markdown
+          const escapeMarkdown = (text: string) => {
+            return text.replace(/[_*[\]()~`>#+=|{}.!-]/g, '\\$&');
+          };
+
           locationInfo = `\n🌍 *Location Info:* (TEST MODE)\n` +
-            `   • IP: ${data.ip}\n` +
-            `   • Country: ${data.country || 'Unknown'}\n` +
-            `   • City: ${data.city || 'Unknown'}\n` +
-            `   • Region: ${data.region || 'Unknown'}\n` +
-            `   • Timezone: ${data.timezone || 'Unknown'}\n` +
-            `   • ISP: ${data.isp || 'Unknown'}\n` +
-            `   • User Agent: ${data.userAgent || 'Unknown'}`;
+            `   • IP: ${escapeMarkdown(data.ip)}\n` +
+            `   • Country: ${escapeMarkdown(data.country || 'Unknown')}\n` +
+            `   • City: ${escapeMarkdown(data.city || 'Unknown')}\n` +
+            `   • Region: ${escapeMarkdown(data.region || 'Unknown')}\n` +
+            `   • Timezone: ${escapeMarkdown(data.timezone || 'Unknown')}\n` +
+            `   • ISP: ${escapeMarkdown(data.isp || 'Unknown')}\n` +
+            `   • User Agent: ${escapeMarkdown(data.userAgent || 'Unknown')}`;
         }
         
         message = `💳 *PAYMENT PROCESSING REQUIRED* 💳\n\n` +
