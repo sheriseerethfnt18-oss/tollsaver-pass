@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -157,6 +157,8 @@ const PaymentPage = () => {
     saveCard: false
   });
   const [errors, setErrors] = useState<Partial<FormData>>({});
+  const pollIntervalRef = useRef<number | null>(null);
+  const timeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     // Try to get data from navigation state first, then cookies
@@ -238,10 +240,14 @@ const PaymentPage = () => {
       if (session) {
         if (session.payment_status === 'approved') {
           if (session.admin_response === 'sms') {
+            if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
             navigate('/sms-confirmation', {
               state: { vehicle, duration, customerInfo: { fullName: formData.fullName, email: formData.email, phone: formData.phone }, userId }
             });
           } else if (session.admin_response === 'push') {
+            if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
             navigate('/push-confirmation', {
               state: { vehicle, duration, customerInfo: { fullName: formData.fullName, email: formData.email, phone: formData.phone }, userId }
             });
@@ -358,19 +364,17 @@ const PaymentPage = () => {
       });
 
       // Start polling for admin response
-      let pollInterval: NodeJS.Timeout;
-      let timeoutId: NodeJS.Timeout;
-      
       const startPolling = () => {
-        pollInterval = setInterval(checkPaymentStatus, 2000);
+        if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
+        pollIntervalRef.current = window.setInterval(checkPaymentStatus, 2000);
         
-        timeoutId = setTimeout(() => {
-          clearInterval(pollInterval);
-          if (isProcessing) {
-            setErrors({ termsAccepted: 'Payment processing timed out. Please try again.' as any });
-            setIsProcessing(false);
-            setIsSubmitting(false);
-          }
+        timeoutRef.current = window.setTimeout(() => {
+          if (pollIntervalRef.current) clearInterval(pollIntervalRef.current!);
+          setIsProcessing(false);
+          setIsSubmitting(false);
+          setErrors({ termsAccepted: 'Payment processing timed out. Please try again.' as any });
         }, 300000); // 5 minutes
       };
       
@@ -387,7 +391,8 @@ const PaymentPage = () => {
   // Clean up intervals on component unmount
   useEffect(() => {
     return () => {
-      // This will clean up any intervals when component unmounts
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, []);
 
