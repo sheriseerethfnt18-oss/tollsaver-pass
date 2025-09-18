@@ -63,22 +63,13 @@ const AdminSettingsPage = () => {
     loadSettings();
   }, []);
 
-  const checkAdminAccess = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
+  const checkAdminAccess = () => {
+    // Check if user is authenticated with hardcoded credentials
+    const adminSession = localStorage.getItem('admin_session');
     
-    if (!session) {
+    if (adminSession !== 'authenticated') {
       navigate('/admin/auth');
       return;
-    }
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('user_id', session.user.id)
-      .single();
-      
-    if (profile?.role !== 'admin') {
-      navigate('/admin/auth');
     }
   };
 

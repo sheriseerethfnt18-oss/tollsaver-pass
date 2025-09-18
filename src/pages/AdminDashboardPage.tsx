@@ -55,26 +55,12 @@ const AdminDashboardPage = () => {
   }, []);
 
   const checkAdminAccess = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
+    // Check if user is authenticated with hardcoded credentials
+    const adminSession = localStorage.getItem('admin_session');
     
-    if (!session) {
+    if (adminSession !== 'authenticated') {
       navigate('/admin/auth');
       return;
-    }
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('user_id', session.user.id)
-      .single();
-      
-    if (profile?.role !== 'admin') {
-      toast({
-        title: "Access Denied",
-        description: "Admin privileges required.",
-        variant: "destructive"
-      });
-      navigate('/admin/auth');
     }
   };
 
@@ -106,8 +92,8 @@ const AdminDashboardPage = () => {
     }
   };
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
+  const handleSignOut = () => {
+    localStorage.removeItem('admin_session');
     navigate('/admin/auth');
   };
 
