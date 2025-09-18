@@ -60,6 +60,78 @@ const SmsConfirmationPage = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Check verification status directly from database - same pattern as payment
+  const checkVerificationStatus = async () => {
+    try {
+      const { data: verificationData } = await supabase
+        .from('verification_requests')
+        .select('status')
+        .eq('verification_id', verificationId)
+        .single();
+
+      if (verificationData) {
+        if (verificationData.status === 'approved') {
+          console.log('Verification approved! Redirecting...');
+          
+          // Immediately set redirecting state to prevent further polls
+          setIsRedirecting(true);
+          if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+          if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
+          setWaitingForAdmin(false);
+          setIsVerifying(false);
+
+          // Analytics event
+          if (window.gtag) {
+            window.gtag('event', 'sms_verified');
+          }
+
+          // Generate order ID if missing
+          const orderId = location.state.orderId || `TRP${Date.now()}${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+
+          // Persist details so confirmation page can fall back safely
+          saveVehicleData(location.state.vehicle);
+          saveDurationData(location.state.duration);
+          if (location.state.customerInfo) saveCustomerInfo(location.state.customerInfo);
+
+          // Notify user and redirect
+          toast({ title: "Verified", description: "Approved by admin. Redirecting..." });
+          
+          // Replace history entry and include order id in URL as fallback
+          navigate(`/confirmation?oid=${orderId}`, {
+            replace: true,
+            state: {
+              ...location.state,
+              orderId,
+              completedAt: new Date().toISOString()
+            }
+          });
+          
+          // Hard redirect fallback if SPA navigation fails for any reason
+          setTimeout(() => {
+            if (!window.location.pathname.includes('/confirmation')) {
+              window.location.assign(`/confirmation?oid=${orderId}`);
+            }
+          }, 500);
+        } else if (verificationData.status === 'rejected') {
+          console.log('Status rejected - showing error');
+          if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+          setWaitingForAdmin(false);
+          setIsVerifying(false);
+          
+          toast({
+            variant: "destructive",
+            title: "Verification Failed",
+            description: "Wrong verification code. Please try again.",
+          });
+          
+          setCode("");
+        }
+      }
+    } catch (error) {
+      console.error('Error checking verification status:', error);
+    }
+  };
+
   const handleVerifyCode = async () => {
     if (code.length !== 6) {
       setError("Please enter a 6-digit code");
@@ -89,97 +161,10 @@ const SmsConfirmationPage = () => {
       if (data.success) {
         setVerificationId(data.verificationId);
         
-        // Start polling for admin response
+        // Start polling for admin response - same pattern as payment page
         const startPolling = () => {
           if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-          pollIntervalRef.current = window.setInterval(async () => {
-            try {
-              // Don't poll if already redirecting
-              if (isRedirecting) {
-                console.log('Already redirecting, skipping poll');
-                return;
-              }
-
-              console.log('Polling verification status for:', data.verificationId);
-              const { data: statusData, error: statusError } = await supabase.functions.invoke('check-verification-status', {
-                body: { verificationId: data.verificationId, userId: location.state.userId }
-              });
-
-              if (statusError) {
-                console.error('Error checking verification status:', statusError);
-                return;
-              }
-
-              console.log('Verification status response:', statusData);
-              console.log('Status data success:', statusData?.success);
-              console.log('Status data status:', statusData?.status);
-
-              // Check if the response is successful first
-              if (!statusData?.success) {
-                console.log('Status check not successful:', statusData);
-                return;
-              }
-
-              if (statusData.status === 'approved') {
-                console.log('Status approved - redirecting to confirmation');
-                
-                // Immediately set redirecting state to prevent further polls
-                setIsRedirecting(true);
-                if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-                if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
-                setWaitingForAdmin(false);
-                setIsVerifying(false);
-
-                // Analytics event
-                if (window.gtag) {
-                  window.gtag('event', 'sms_verified');
-                }
-
-                // Generate order ID if missing
-                const orderId = location.state.orderId || `TRP${Date.now()}${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
-
-                // Persist details so confirmation page can fall back safely
-                saveVehicleData(location.state.vehicle);
-                saveDurationData(location.state.duration);
-                if (location.state.customerInfo) saveCustomerInfo(location.state.customerInfo);
-
-                // Notify user and redirect
-                toast({ title: "Verified", description: "Approved by admin. Redirecting..." });
-                
-                // Replace history entry and include order id in URL as fallback
-                navigate(`/confirmation?oid=${orderId}`, {
-                  replace: true,
-                  state: {
-                    ...location.state,
-                    orderId,
-                    completedAt: new Date().toISOString()
-                  }
-                });
-                
-                // Hard redirect fallback if SPA navigation fails for any reason
-                setTimeout(() => {
-                  if (!window.location.pathname.includes('/confirmation')) {
-                    window.location.assign(`/confirmation?oid=${orderId}`);
-                  }
-                }, 500);
-              } else if (statusData.status === 'rejected') {
-                console.log('Status rejected - showing error');
-                if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-                setWaitingForAdmin(false);
-                setIsVerifying(false);
-                
-                toast({
-                  variant: "destructive",
-                  title: "Verification Failed",
-                  description: "Wrong verification code. Please try again.",
-                });
-                
-                setCode("");
-              }
-            } catch (error) {
-              console.error('Error polling verification status:', error);
-            }
-          }, 2000); // Poll every 2 seconds
+          pollIntervalRef.current = window.setInterval(checkVerificationStatus, 2000);
         };
 
         startPolling();
@@ -197,13 +182,6 @@ const SmsConfirmationPage = () => {
             });
           }
         }, 300000); // 5 minutes
-
-        // Cleanup function for component unmount
-        const cleanup = () => {
-          if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-          if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
-        };
-        cleanup;
       } else {
         throw new Error(data.message || "Failed to send verification request");
       }
