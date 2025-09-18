@@ -175,7 +175,8 @@ const AdminSettingsPage = () => {
 
     setSaving(true);
     try {
-      const webhookUrl = `${window.location.origin.replace('http://', 'https://')}/api/telegram-webhook`;
+      // Use Supabase Edge Function URL, not the site origin
+      const webhookUrl = `https://kcsvkdhnglpvzdvznmfs.supabase.co/functions/v1/telegram-webhook`;
       
       const response = await fetch(`https://api.telegram.org/bot${telegramSettings.bot_token}/setWebhook`, {
         method: 'POST',
