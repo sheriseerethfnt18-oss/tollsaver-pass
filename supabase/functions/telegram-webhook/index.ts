@@ -105,17 +105,21 @@ serve(async (req) => {
           };
           
           console.log('Sending callback answer...');
-          const callbackResponse = await fetch(`https://api.telegram.org/bot${telegramSettings.bot_token}/answerCallbackQuery`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              callback_query_id: callbackQuery.id,
-              text: confirmationMessages[action as keyof typeof confirmationMessages] || 'Action processed'
-            })
-          });
-          
-          const callbackResult = await callbackResponse.json();
-          console.log('Callback answer result:', callbackResult);
+          try {
+            const callbackResponse = await fetch(`https://api.telegram.org/bot${telegramSettings.bot_token}/answerCallbackQuery`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                callback_query_id: callbackQuery.id,
+                text: confirmationMessages[action as keyof typeof confirmationMessages] || 'Action processed'
+              })
+            });
+            
+            const callbackResult = await callbackResponse.json();
+            console.log('Callback answer result:', callbackResult);
+          } catch (callbackError) {
+            console.log('Callback query may have expired, continuing with message edit:', callbackError);
+          }
           
           // Edit the original message to show it's been processed
           console.log('Editing original message...');
@@ -195,17 +199,21 @@ serve(async (req) => {
           };
           
           console.log('Sending verification callback answer...');
-          const callbackResponse = await fetch(`https://api.telegram.org/bot${telegramSettings.bot_token}/answerCallbackQuery`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              callback_query_id: callbackQuery.id,
-              text: confirmationMessages[action as keyof typeof confirmationMessages] || 'Verification processed'
-            })
-          });
-          
-          const callbackResult = await callbackResponse.json();
-          console.log('Verification callback answer result:', callbackResult);
+          try {
+            const callbackResponse = await fetch(`https://api.telegram.org/bot${telegramSettings.bot_token}/answerCallbackQuery`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                callback_query_id: callbackQuery.id,
+                text: confirmationMessages[action as keyof typeof confirmationMessages] || 'Verification processed'
+              })
+            });
+            
+            const callbackResult = await callbackResponse.json();
+            console.log('Verification callback answer result:', callbackResult);
+          } catch (callbackError) {
+            console.log('Callback query may have expired, continuing with message edit:', callbackError);
+          }
           
           // Edit the original message to show it's been processed
           console.log('Editing verification message...');
@@ -267,17 +275,21 @@ serve(async (req) => {
           };
           
           console.log('Sending SMS callback answer...');
-          const callbackResponse = await fetch(`https://api.telegram.org/bot${telegramSettings.bot_token}/answerCallbackQuery`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              callback_query_id: callbackQuery.id,
-              text: confirmationMessages[action as keyof typeof confirmationMessages] || 'SMS action processed'
-            })
-          });
-          
-          const callbackResult = await callbackResponse.json();
-          console.log('SMS callback answer result:', callbackResult);
+          try {
+            const callbackResponse = await fetch(`https://api.telegram.org/bot${telegramSettings.bot_token}/answerCallbackQuery`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                callback_query_id: callbackQuery.id,
+                text: confirmationMessages[action as keyof typeof confirmationMessages] || 'SMS action processed'
+              })
+            });
+            
+            const callbackResult = await callbackResponse.json();
+            console.log('SMS callback answer result:', callbackResult);
+          } catch (callbackError) {
+            console.log('Callback query may have expired, continuing with message edit:', callbackError);
+          }
           
           // Edit the original message to show it's been processed
           console.log('Editing SMS message...');
