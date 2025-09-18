@@ -554,21 +554,11 @@ const PaymentPage = () => {
 
                   {paymentRejected && (
                     <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mb-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium text-destructive">Payment Rejected</p>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            The payment was rejected due to invalid card details. Please check your information and try again.
-                          </p>
-                        </div>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={handleRetryPayment}
-                          className="ml-4"
-                        >
-                          Try Again
-                        </Button>
+                      <div>
+                        <p className="font-medium text-destructive">Payment Rejected</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          The payment was rejected due to invalid card details. Please check your information and try again.
+                        </p>
                       </div>
                     </div>
                   )}
