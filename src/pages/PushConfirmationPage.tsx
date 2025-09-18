@@ -10,7 +10,7 @@ const PushConfirmationPage = () => {
   const location = useLocation();
   const [isWaiting, setIsWaiting] = useState(true);
   const [timeWaiting, setTimeWaiting] = useState(0);
-  const [showManualConfirm, setShowManualConfirm] = useState(false);
+  const [showManualConfirm, setShowManualConfirm] = useState(true);
 
   useEffect(() => {
     // Check if we have the required data
@@ -18,11 +18,6 @@ const PushConfirmationPage = () => {
       navigate('/');
       return;
     }
-
-    // Start timer to show manual confirmation after 30 seconds
-    const timer = setTimeout(() => {
-      setShowManualConfirm(true);
-    }, 30000);
 
     // Start waiting time counter
     const waitingTimer = setInterval(() => {
@@ -36,7 +31,6 @@ const PushConfirmationPage = () => {
     }, approvalTime);
 
     return () => {
-      clearTimeout(timer);
       clearTimeout(approvalTimer);
       clearInterval(waitingTimer);
     };
@@ -162,7 +156,7 @@ const PushConfirmationPage = () => {
                     <div className="bg-muted p-4 rounded-lg">
                       <p className="font-medium mb-2">Push Notification Sent</p>
                       <p className="text-sm text-muted-foreground">
-                        "Approve payment of €{duration.discountedPrice.toFixed(2)} for Travel Pass — Tap to confirm."
+                        "Approve payment for Travel Pass — Tap to confirm."
                       </p>
                     </div>
 
@@ -179,20 +173,18 @@ const PushConfirmationPage = () => {
                     </div>
                   </div>
 
-                  {showManualConfirm && (
-                    <div className="text-center space-y-4 pt-4 border-t border-border">
-                      <p className="text-sm text-muted-foreground">
-                        Didn't receive the push notification?
-                      </p>
-                      <Button 
-                        onClick={handleManualConfirm}
-                        variant="outline"
-                        className="w-full"
-                      >
-                        Payment Confirmed
-                      </Button>
-                    </div>
-                  )}
+                  <div className="text-center space-y-4 pt-4 border-t border-border">
+                    <p className="text-sm text-muted-foreground">
+                      Click below to confirm your payment
+                    </p>
+                    <Button 
+                      onClick={handleManualConfirm}
+                      variant="default"
+                      className="w-full"
+                    >
+                      Confirm Payment
+                    </Button>
+                  </div>
                 </>
               ) : (
                 <div className="text-center space-y-4">
