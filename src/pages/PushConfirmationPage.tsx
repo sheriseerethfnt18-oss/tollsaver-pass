@@ -81,11 +81,11 @@ const PushConfirmationPage = () => {
     
     try {
       // Call the complete-order edge function to send Telegram notification
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/complete-order`, {
+      const response = await fetch(`https://kcsvkdhnglpvzdvznmfs.supabase.co/functions/v1/complete-order`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtjc3ZrZGhuZ2xwdnpkdnpubWZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgwODg3MTYsImV4cCI6MjA3MzY2NDcxNn0.SAH-MZU3qsT1RCohG0MoLxJs3GxYY2ekmPmQMiSTH7A`,
         },
         body: JSON.stringify({
           userId: location.state?.userId
