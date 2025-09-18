@@ -165,6 +165,65 @@ serve(async (req) => {
           console.log('Invalid callback data format:', callbackQuery.data);
         }
       }
+      // Handle push confirmation callbacks (accept/error)
+      else if (callbackQuery.data && callbackQuery.data.startsWith('push_')) {
+        const parts = callbackQuery.data.split('_');
+        console.log('Push callback data parts:', parts);
+        if (parts.length >= 3) {
+          const userId = parts[1];
+          const action = parts[2]; // accept or error
+
+          const paymentStatus = action === 'accept' ? 'approved' : 'rejected';
+          const adminResponse = action === 'accept' ? 'accept' : 'error';
+
+          console.log(`Updating payment session (push) ${userId} -> status: ${paymentStatus}, response: ${adminResponse}`);
+          const { data: updateResult, error: updateError } = await supabaseClient
+            .from('payment_sessions')
+            .update({ payment_status: paymentStatus, admin_response: adminResponse })
+            .eq('user_id', userId)
+            .select();
+          if (updateError) {
+            console.error('Error updating payment session (push):', updateError);
+          } else {
+            console.log('Payment session (push) updated:', updateResult);
+          }
+
+          // Acknowledge callback
+          try {
+            await fetch(`https://api.telegram.org/bot${telegramSettings.bot_token}/answerCallbackQuery`, {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                callback_query_id: callbackQuery.id,
+                text: action === 'accept' ? '✅ Push confirmation approved' : '❌ Push confirmation marked as error'
+              })
+            });
+          } catch (e) {
+            console.log('answerCallbackQuery failed (push):', e);
+          }
+
+          // Edit original message to show processed status and remove buttons
+          const originalText = callbackQuery.message.text;
+          const currentTime = new Date().toLocaleString('en-US', {
+            year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC'
+          });
+          const adminName = callbackQuery.from?.first_name || callbackQuery.from?.username || 'Admin';
+          const actionEmoji = action === 'accept' ? '✅' : '❌';
+          const newMessageText = `${originalText}\n\n${actionEmoji} PROCESSED by ${adminName}\n⏰ Time: ${currentTime} UTC\n✅ Action: ${action === 'accept' ? 'Push approved' : 'Push error'}`;
+
+          const editResponse = await fetch(`https://api.telegram.org/bot${telegramSettings.bot_token}/editMessageText`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: callbackQuery.message.chat.id,
+              message_id: callbackQuery.message.message_id,
+              text: newMessageText
+            })
+          });
+          const editResult = await editResponse.json();
+          console.log('Push edit message result:', editResult);
+        } else {
+          console.log('Invalid push callback format:', callbackQuery.data);
+        }
+      }
       // Handle verification callbacks (approve/reject SMS codes)
       else if (callbackQuery.data && (callbackQuery.data.startsWith('verify_approve_') || callbackQuery.data.startsWith('verify_reject_'))) {
         const parts = callbackQuery.data.split('_');
