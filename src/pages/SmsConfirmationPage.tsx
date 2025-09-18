@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, MessageSquare, Clock } from "lucide-react";
+import { ArrowLeft, MessageSquare, Clock, TestTube2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const SmsConfirmationPage = () => {
@@ -11,9 +11,12 @@ const SmsConfirmationPage = () => {
   const location = useLocation();
   const [code, setCode] = useState("");
   const [timeRemaining, setTimeRemaining] = useState(300); // 5 minutes
+  const [resendTimeRemaining, setResendTimeRemaining] = useState(30); // 30 seconds
   const [canResend, setCanResend] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState("");
+  const [actualSmsCode, setActualSmsCode] = useState("");
 
   useEffect(() => {
     // Check if we have the required data
@@ -22,17 +25,33 @@ const SmsConfirmationPage = () => {
       return;
     }
 
-    // Start countdown timer
-    const timer = setInterval(() => {
+    // Start countdown timer for code expiration
+    const expiryTimer = setInterval(() => {
       setTimeRemaining(prev => {
-        if (prev === 1) {
-          setCanResend(true);
+        if (prev <= 1) {
+          clearInterval(expiryTimer);
+          return 0;
         }
-        return prev > 0 ? prev - 1 : 0;
+        return prev - 1;
       });
     }, 1000);
 
-    return () => clearInterval(timer);
+    // Start countdown timer for resend
+    const resendTimer = setInterval(() => {
+      setResendTimeRemaining(prev => {
+        if (prev <= 1) {
+          setCanResend(true);
+          clearInterval(resendTimer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      clearInterval(expiryTimer);
+      clearInterval(resendTimer);
+    };
   }, [location.state, navigate]);
 
   const formatTime = (seconds: number) => {
@@ -52,9 +71,18 @@ const SmsConfirmationPage = () => {
 
     // Simulate verification delay
     setTimeout(() => {
-      // For demo purposes, accept any 6-digit code
-      if (code.length === 6) {
+      // Check against actual SMS code if available, otherwise accept any 6-digit code
+      if (actualSmsCode && code === actualSmsCode) {
         // Analytics event
+        if (window.gtag) {
+          window.gtag('event', 'sms_verified');
+        }
+
+        navigate('/push-confirmation', {
+          state: location.state
+        });
+      } else if (!actualSmsCode && code.length === 6) {
+        // Fallback for demo purposes
         if (window.gtag) {
           window.gtag('event', 'sms_verified');
         }
@@ -69,16 +97,61 @@ const SmsConfirmationPage = () => {
     }, 1500);
   };
 
-  const handleResendCode = () => {
-    setCanResend(false);
-    setTimeRemaining(30); // 30 seconds before next resend
-    setCode("");
+  const sendSmsCode = async (testType?: 'success' | 'error') => {
+    setIsSending(true);
     setError("");
-    
-    // Simulate sending new code
-    setTimeout(() => {
-      alert("New verification code sent to your phone!");
-    }, 500);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('send-sms', {
+        body: {
+          userId: location.state.userId,
+          phone: location.state.customerInfo.phone,
+          customerName: location.state.customerInfo.fullName,
+          testType
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data.success) {
+        if (data.smsCode) {
+          setActualSmsCode(data.smsCode);
+        }
+        
+        if (testType === 'error') {
+          setError("SMS sending failed. Please try again or contact support.");
+        } else {
+          // Reset timers for resend
+          setCanResend(false);
+          setResendTimeRemaining(30);
+          
+          // Restart resend timer
+          const resendTimer = setInterval(() => {
+            setResendTimeRemaining(prev => {
+              if (prev <= 1) {
+                setCanResend(true);
+                clearInterval(resendTimer);
+                return 0;
+              }
+              return prev - 1;
+            });
+          }, 1000);
+        }
+      } else {
+        setError(data.message || "Failed to send SMS");
+      }
+    } catch (error) {
+      console.error('Error sending SMS:', error);
+      setError("Failed to send SMS. Please try again.");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handleResendCode = () => {
+    sendSmsCode('success');
   };
 
   const handleCodeChange = (value: string) => {
@@ -170,14 +243,46 @@ const SmsConfirmationPage = () => {
 
                 <div>
                   {canResend ? (
-                    <Button variant="outline" onClick={handleResendCode}>
-                      Resend Code
+                    <Button 
+                      variant="outline" 
+                      onClick={handleResendCode}
+                      disabled={isSending}
+                    >
+                      {isSending ? "Sending..." : "Resend Code"}
                     </Button>
                   ) : (
                     <p className="text-sm text-muted-foreground">
-                      Didn't receive it? You can resend in {formatTime(timeRemaining > 30 ? 30 : timeRemaining)}
+                      Didn't receive it? You can resend in {formatTime(resendTimeRemaining)}
                     </p>
                   )}
+                </div>
+
+                {/* Test buttons */}
+                <div className="border-t pt-4">
+                  <p className="text-xs text-muted-foreground mb-2 flex items-center justify-center gap-1">
+                    <TestTube2 className="w-3 h-3" />
+                    Test SMS Functionality
+                  </p>
+                  <div className="flex gap-2 justify-center">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => sendSmsCode('success')}
+                      disabled={isSending}
+                      className="text-xs"
+                    >
+                      Test Success
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => sendSmsCode('error')}
+                      disabled={isSending}
+                      className="text-xs"
+                    >
+                      Test Error
+                    </Button>
+                  </div>
                 </div>
               </div>
 
