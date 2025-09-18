@@ -26,11 +26,42 @@ serve(async (req) => {
 
   const supabaseClient = createClient(
     Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
   );
 
+  // Enforce POST method
+  if (req.method !== 'POST') {
+    console.log('[send-telegram-notification] Non-POST request:', req.method);
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
   try {
-    const { type, data } = await req.json() as NotificationData;
+    const raw = await req.text();
+    console.log('[send-telegram-notification] Incoming request meta:', {
+      method: req.method,
+      headers: Object.fromEntries(req.headers.entries()),
+      rawBodyLength: raw?.length ?? 0,
+      rawPreview: raw?.slice(0, 200),
+    });
+
+    let parsed: NotificationData | null = null;
+    try {
+      parsed = raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      console.error('[send-telegram-notification] JSON parse error:', e);
+    }
+
+    if (!parsed || !parsed.type) {
+      return new Response(JSON.stringify({ error: 'Invalid or empty JSON body' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const { type, data } = parsed;
 
     // Get telegram settings
     const { data: settings, error: settingsError } = await supabaseClient
@@ -173,16 +204,19 @@ serve(async (req) => {
       );
     }
 
-    // Send message to Telegram
+    // Send message to Telegram (no parse_mode to avoid entity issues)
     const telegramBody: any = {
       chat_id: chatId,
-      text: message,
-      parse_mode: 'Markdown'
+      text: message
     };
-    
     if (replyMarkup) {
       telegramBody.reply_markup = replyMarkup;
     }
+    console.log('[send-telegram-notification] Sending to Telegram:', {
+      chatId,
+      hasReplyMarkup: !!replyMarkup,
+      textLength: message?.length ?? 0
+    });
 
     const telegramResponse = await fetch(`https://api.telegram.org/bot${telegramSettings.bot_token}/sendMessage`, {
       method: 'POST',

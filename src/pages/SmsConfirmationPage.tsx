@@ -79,6 +79,11 @@ const SmsConfirmationPage = () => {
 
       const status = data?.status as string | undefined;
 
+      if (status && lastStatusRef.current !== status) {
+        console.log(`Verification status changed: ${lastStatusRef.current} -> ${status}`);
+        lastStatusRef.current = status;
+      }
+
       if (status === 'approved') {
         console.log('Verification approved! Redirecting...');
 
@@ -213,6 +218,7 @@ const SmsConfirmationPage = () => {
         if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
 
         // Start polling for admin approval via DB status
+        console.log('Starting status polling for verificationId:', data.verificationId);
         pollIntervalRef.current = window.setInterval(() => {
           checkVerificationStatus(data.verificationId);
         }, 2000);
