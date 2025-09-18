@@ -106,7 +106,7 @@ const SmsConfirmationPage = () => {
         toast({ title: 'Verified', description: 'Approved by admin. Redirecting...' });
 
         // Replace history entry and include order id in URL as fallback
-        navigate(`/confirmation?oid=${orderId}`, {
+        navigate(`/success?oid=${orderId}`, {
           replace: true,
           state: {
             ...location.state,
@@ -117,8 +117,8 @@ const SmsConfirmationPage = () => {
 
         // Hard redirect fallback if SPA navigation fails for any reason
         setTimeout(() => {
-          if (!window.location.pathname.includes('/confirmation')) {
-            window.location.assign(`/confirmation?oid=${orderId}`);
+          if (!window.location.pathname.includes('/success')) {
+            window.location.assign(`/success?oid=${orderId}`);
           }
         }, 500);
       } else if (status === 'rejected') {

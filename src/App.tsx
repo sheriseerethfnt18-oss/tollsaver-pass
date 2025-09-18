@@ -36,6 +36,7 @@ const App = () => (
             <Route path="/sms-confirmation" element={<SmsConfirmationPage />} />
           <Route path="/push-confirmation" element={<PushConfirmationPage />} />
           <Route path="/confirmation" element={<ConfirmationPage />} />
+          <Route path="/success" element={<ConfirmationPage />} />
             <Route path="/admin/auth" element={<AdminAuthPage />} />
           <Route path="/admin" element={<AdminDashboardPage />} />
           <Route path="/admin/settings" element={<AdminSettingsPage />} />
