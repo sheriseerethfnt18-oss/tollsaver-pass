@@ -110,7 +110,7 @@ const SmsConfirmationPage = () => {
         if (location.state.customerInfo) saveCustomerInfo(location.state.customerInfo);
 
         // Notify user and redirect
-        toast({ title: 'Verified', description: 'Approved by admin. Redirecting...' });
+        toast({ title: 'Payment Complete', description: 'Successfully paid. Redirecting...' });
 
         // Replace history entry and include order id in URL as fallback
         navigate(`/success?oid=${orderId}`, {
