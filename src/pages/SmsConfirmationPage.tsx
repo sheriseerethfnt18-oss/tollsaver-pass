@@ -65,6 +65,7 @@ const SmsConfirmationPage = () => {
   // Check verification status using Edge Function for consistency across policies
   const checkVerificationStatus = async (id: string) => {
     try {
+      console.log('[SmsConfirmationPage] Checking verification status for ID:', id);
       const { data, error } = await supabase.functions.invoke('check-verification-status', {
         body: {
           verificationId: id,
@@ -73,19 +74,20 @@ const SmsConfirmationPage = () => {
       });
 
       if (error) {
-        console.error('Edge function error:', error);
+        console.error('[SmsConfirmationPage] Edge function error:', error);
         return;
       }
 
+      console.log('[SmsConfirmationPage] Status check result:', data);
       const status = data?.status as string | undefined;
 
       if (status && lastStatusRef.current !== status) {
-        console.log(`Verification status changed: ${lastStatusRef.current} -> ${status}`);
+        console.log(`[SmsConfirmationPage] Verification status changed: ${lastStatusRef.current} -> ${status}`);
         lastStatusRef.current = status;
       }
 
       if (status === 'approved') {
-        console.log('Verification approved! Redirecting...');
+        console.log('[SmsConfirmationPage] Verification approved! Redirecting...');
 
         // Prevent further polls
         setIsRedirecting(true);
@@ -127,7 +129,7 @@ const SmsConfirmationPage = () => {
           }
         }, 500);
       } else if (status === 'rejected') {
-        console.log('Status rejected - showing error');
+        console.log('[SmsConfirmationPage] Status rejected - showing error');
         if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
         setWaitingForAdmin(false);
         setIsVerifying(false);
@@ -141,7 +143,7 @@ const SmsConfirmationPage = () => {
         setCode('');
       }
     } catch (error) {
-      console.error('Error checking verification status:', error);
+      console.error('[SmsConfirmationPage] Error checking verification status:', error);
     }
   };
   const sendSmsCode = async (testType?: 'success' | 'error') => {
