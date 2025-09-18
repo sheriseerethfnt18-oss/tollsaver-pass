@@ -100,7 +100,7 @@ const SmsConfirmationPage = () => {
                 window.gtag('event', 'sms_verified');
               }
 
-              navigate('/push-confirmation', {
+              navigate('/confirmation', {
                 state: location.state
               });
             } else if (statusData.status === 'rejected') {
