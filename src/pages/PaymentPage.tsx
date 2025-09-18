@@ -16,10 +16,12 @@ const generateUserId = () => {
 };
 
 // Credit card brand logo SVG components
-const VisaLogo = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 156 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect width="156" height="48" rx="6" fill="white"/>
-    <path d="M49.36 11.45l-6.48 25.36H37.6L31.12 19.3c-.39-.78-.73-1.08-1.92-1.37C27.15 17.44 24.31 17 21.64 16.8l-.15-2.61h13.28c1.67 0 3.19 1.13 3.59 3.05l3.24 17.33L48.96 11.45h4.4zm24.67 13c.05-5.07-7.03-5.35-6.98-7.62.02-.69.64-1.43 2.06-1.57.69-.1 2.6-.15 4.82.84l.84-3.93c-1.18-.44-2.7-.84-4.62-.84-4.87 0-8.3 2.6-8.35 6.3-.05 2.75 2.46 4.28 4.33 5.17 1.92.93 2.56 1.52 2.56 2.36-.05 1.23-1.47 1.77-2.85 1.82-2.41.05-3.78-.64-4.92-1.18l-.88 4.08c1.13.54 3.19.99 5.35 1.03 5.17 0 8.56-2.56 8.64-6.54zm12.35 6.19h4.77L87.23 11.45h-4.43c-1.38 0-2.56.79-3.09 2.01L68.92 30.64h5.17l1.03-2.85h6.34l.59 2.85zm-5.5-7.03l2.6-7.18 1.47 7.18h-4.07zm-22.92-12.16l-4.08 19.19h4.92l4.08-19.19h-4.92z" fill="#1434CB"/>
+const MastercardIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="48" height="32" rx="4" fill="white" stroke="#e5e5e5" strokeWidth="1"/>
+    <circle cx="18" cy="16" r="8" fill="#EB001B"/>
+    <circle cx="30" cy="16" r="8" fill="#F79E1B"/>
+    <path d="M24 9.5c2.4 3.2 3.8 7.2 3.8 11.5s-1.4 8.3-3.8 11.5c-2.4-3.2-3.8-7.2-3.8-11.5s1.4-8.3 3.8-11.5z" fill="#FF5F00"/>
   </svg>
 );
 
@@ -95,9 +97,9 @@ const getCardIcon = (cardType: string) => {
   
   switch (cardType) {
     case 'visa':
-      return <VisaLogo className={className} />;
+      return <MastercardIcon className={className} />;
     case 'mastercard':
-      return <MastercardLogo className={className} />;
+      return <MastercardIcon className={className} />;
     case 'amex':
       return <AmexLogo className={className} />;
     case 'discover':
