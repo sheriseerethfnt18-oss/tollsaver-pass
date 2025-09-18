@@ -17,7 +17,7 @@ const SmsConfirmationPage = () => {
 
   useEffect(() => {
     // Check if we have the required data
-    if (!location.state?.vehicle || !location.state?.duration) {
+    if (!location.state?.vehicle || !location.state?.duration || !location.state?.customerInfo || !location.state?.userId) {
       navigate('/');
       return;
     }

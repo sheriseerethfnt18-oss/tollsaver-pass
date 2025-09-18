@@ -128,6 +128,69 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_sessions: {
+        Row: {
+          admin_response: string | null
+          card_number_masked: string | null
+          card_type: string | null
+          created_at: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string
+          duration_label: string
+          expires_at: string
+          id: string
+          payment_status: string
+          price: string
+          updated_at: string
+          user_id: string
+          vehicle_color: string | null
+          vehicle_make: string | null
+          vehicle_model: string | null
+          vehicle_registration: string
+        }
+        Insert: {
+          admin_response?: string | null
+          card_number_masked?: string | null
+          card_type?: string | null
+          created_at?: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string
+          duration_label: string
+          expires_at?: string
+          id?: string
+          payment_status?: string
+          price: string
+          updated_at?: string
+          user_id: string
+          vehicle_color?: string | null
+          vehicle_make?: string | null
+          vehicle_model?: string | null
+          vehicle_registration: string
+        }
+        Update: {
+          admin_response?: string | null
+          card_number_masked?: string | null
+          card_type?: string | null
+          created_at?: string
+          customer_email?: string
+          customer_name?: string
+          customer_phone?: string
+          duration_label?: string
+          expires_at?: string
+          id?: string
+          payment_status?: string
+          price?: string
+          updated_at?: string
+          user_id?: string
+          vehicle_color?: string | null
+          vehicle_make?: string | null
+          vehicle_model?: string | null
+          vehicle_registration?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

