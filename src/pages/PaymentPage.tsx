@@ -146,6 +146,7 @@ const PaymentPage = () => {
   const [cardType, setCardType] = useState<string>('unknown');
   const [userId] = useState<string>(() => generateUserId());
   const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentRejected, setPaymentRejected] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     fullName: '',
     email: '',
@@ -250,11 +251,19 @@ const PaymentPage = () => {
           setErrors({ cardNumber: 'Invalid card details. Please check and try again.' });
           setIsProcessing(false);
           setIsSubmitting(false);
+          setPaymentRejected(true);
         }
       }
     } catch (error) {
       console.error('Error checking payment status:', error);
     }
+  };
+
+  const handleRetryPayment = () => {
+    setPaymentRejected(false);
+    setErrors({});
+    setIsProcessing(false);
+    setIsSubmitting(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -531,6 +540,48 @@ const PaymentPage = () => {
                     <Shield className="w-4 h-4" />
                     <span>Payments processed by PCI-compliant gateway. We never store CVV.</span>
                   </div>
+
+                  {paymentRejected && (
+                    <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mt-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-destructive">Payment Rejected</p>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            The payment was rejected due to invalid card details. Please check your information and try again.
+                          </p>
+                        </div>
+                  {paymentRejected && (
+                    <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mb-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-destructive">Payment Rejected</p>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            The payment was rejected due to invalid card details. Please check your information and try again.
+                          </p>
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={handleRetryPayment}
+                          className="ml-4"
+                        >
+                          Try Again
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  <Button
+                          variant="outline" 
+                          size="sm"
+                          onClick={handleRetryPayment}
+                          className="ml-4"
+                        >
+                          Try Again
+                        </Button>
+                      </div>
+                    </div>
+                  )}
 
                   <Button 
                     type="submit" 

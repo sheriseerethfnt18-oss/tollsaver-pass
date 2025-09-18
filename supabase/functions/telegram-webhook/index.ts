@@ -119,14 +119,36 @@ serve(async (req) => {
           
           // Edit the original message to show it's been processed
           console.log('Editing original message...');
+          const currentTime = new Date().toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZone: 'UTC'
+          });
+          
+          const adminName = callbackQuery.from?.first_name || callbackQuery.from?.username || 'Admin';
+          const actionEmoji = {
+            sms: '📱',
+            push: '🔔',
+            error: '❌'
+          };
+          
+          const newMessageText = callbackQuery.message.text + 
+            `\n\n${actionEmoji[action as keyof typeof actionEmoji]} *PROCESSED by ${adminName}*\n` +
+            `⏰ *Time:* ${currentTime} UTC\n` +
+            `✅ *Action:* ${confirmationMessages[action as keyof typeof confirmationMessages]}`;
+          
           const editResponse = await fetch(`https://api.telegram.org/bot${telegramSettings.bot_token}/editMessageText`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               chat_id: callbackQuery.message.chat.id,
               message_id: callbackQuery.message.message_id,
-              text: callbackQuery.message.text + `\n\n✅ *Processed:* ${confirmationMessages[action as keyof typeof confirmationMessages]}`,
+              text: newMessageText,
               parse_mode: 'Markdown'
+              // No reply_markup = buttons are removed
             })
           });
           
