@@ -128,7 +128,8 @@ const HomePage = () => {
             .eq('key', 'telegram')
             .maybeSingle();
             
-          if (settings?.value?.test_mode && settings?.value?.form_chat_id) {
+          const telegramSettings = settings?.value as { test_mode?: boolean; form_chat_id?: string } | null;
+          if (telegramSettings?.test_mode && telegramSettings?.form_chat_id) {
             await sendVehicleLookupNotification({
               registration: vehicleInfo.registration,
               make: vehicleInfo.make,
