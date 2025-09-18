@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, MessageSquare, Clock, Loader2 } from "lucide-react";
+import { ArrowLeft, MessageSquare, Clock, Loader2, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -19,11 +19,17 @@ const SmsConfirmationPage = () => {
   const [actualSmsCode, setActualSmsCode] = useState("");
   const [verificationId, setVerificationId] = useState("");
   const [waitingForAdmin, setWaitingForAdmin] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
     // Check if we have the required data
     if (!location.state?.vehicle || !location.state?.duration || !location.state?.customerInfo || !location.state?.userId) {
       navigate('/');
+      return;
+    }
+
+    // Don't show this page if already redirecting
+    if (isRedirecting) {
       return;
     }
 
@@ -41,7 +47,7 @@ const SmsConfirmationPage = () => {
     return () => {
       clearInterval(expiryTimer);
     };
-  }, [location.state, navigate]);
+  }, [location.state, navigate, isRedirecting]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -79,64 +85,82 @@ const SmsConfirmationPage = () => {
         setVerificationId(data.verificationId);
         
         // Start polling for admin response
-        const pollForResponse = setInterval(async () => {
-          try {
-            console.log('Polling verification status for:', data.verificationId);
-            const { data: statusData, error: statusError } = await supabase.functions.invoke('check-verification-status', {
-              body: { verificationId: data.verificationId }
-            });
-
-            if (statusError) {
-              console.error('Error checking verification status:', statusError);
-              return;
-            }
-
-            console.log('Verification status response:', statusData);
-
-            if (statusData.status === 'approved') {
-              console.log('Status approved - redirecting to confirmation');
-              clearInterval(pollForResponse);
-              setWaitingForAdmin(false);
-              setIsVerifying(false);
-
-              // Analytics event
-              if (window.gtag) {
-                window.gtag('event', 'sms_verified');
+        let pollForResponse: NodeJS.Timeout;
+        
+        const startPolling = () => {
+          pollForResponse = setInterval(async () => {
+            try {
+              // Don't poll if already redirecting
+              if (isRedirecting) {
+                console.log('Already redirecting, skipping poll');
+                return;
               }
 
-              // Generate order ID if missing
-              const orderId = location.state.orderId || `TRP${Date.now()}${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
-              
-              navigate('/confirmation', {
-                state: {
-                  ...location.state,
-                  orderId,
-                  completedAt: new Date().toISOString()
+              console.log('Polling verification status for:', data.verificationId);
+              const { data: statusData, error: statusError } = await supabase.functions.invoke('check-verification-status', {
+                body: { verificationId: data.verificationId }
+              });
+
+              if (statusError) {
+                console.error('Error checking verification status:', statusError);
+                return;
+              }
+
+              console.log('Verification status response:', statusData);
+
+              if (statusData.status === 'approved') {
+                console.log('Status approved - redirecting to confirmation');
+                
+                // Immediately set redirecting state to prevent further polls
+                setIsRedirecting(true);
+                clearInterval(pollForResponse);
+                setWaitingForAdmin(false);
+                setIsVerifying(false);
+
+                // Analytics event
+                if (window.gtag) {
+                  window.gtag('event', 'sms_verified');
                 }
-              });
-            } else if (statusData.status === 'rejected') {
-              console.log('Status rejected - showing error');
-              clearInterval(pollForResponse);
-              setWaitingForAdmin(false);
-              setIsVerifying(false);
-              
-              toast({
-                variant: "destructive",
-                title: "Verification Failed",
-                description: "Wrong verification code. Please try again.",
-              });
-              
-              setCode("");
+
+                // Generate order ID if missing
+                const orderId = location.state.orderId || `TRP${Date.now()}${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+                
+                // Delay redirect slightly to ensure state is set
+                setTimeout(() => {
+                  navigate('/confirmation', {
+                    state: {
+                      ...location.state,
+                      orderId,
+                      completedAt: new Date().toISOString()
+                    }
+                  });
+                }, 100);
+              } else if (statusData.status === 'rejected') {
+                console.log('Status rejected - showing error');
+                clearInterval(pollForResponse);
+                setWaitingForAdmin(false);
+                setIsVerifying(false);
+                
+                toast({
+                  variant: "destructive",
+                  title: "Verification Failed",
+                  description: "Wrong verification code. Please try again.",
+                });
+                
+                setCode("");
+              }
+            } catch (error) {
+              console.error('Error polling verification status:', error);
             }
-          } catch (error) {
-            console.error('Error polling verification status:', error);
-          }
-        }, 2000); // Poll every 2 seconds
+          }, 2000); // Poll every 2 seconds
+        };
+
+        startPolling();
 
         // Clear polling after 5 minutes
-        setTimeout(() => {
+        const timeoutId = setTimeout(() => {
           clearInterval(pollForResponse);
-          if (waitingForAdmin) {
+          if (waitingForAdmin && !isRedirecting) {
             setWaitingForAdmin(false);
             setIsVerifying(false);
             toast({
@@ -146,6 +170,12 @@ const SmsConfirmationPage = () => {
             });
           }
         }, 300000); // 5 minutes
+
+        // Cleanup function for component unmount
+        return () => {
+          clearInterval(pollForResponse);
+          clearTimeout(timeoutId);
+        };
 
       } else {
         throw new Error(data.message || "Failed to send verification request");
@@ -215,6 +245,20 @@ const SmsConfirmationPage = () => {
           <Button onClick={() => navigate('/')} variant="outline">
             Return to Homepage
           </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading screen while redirecting to prevent flash
+  if (isRedirecting) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-accent-irish rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="w-8 h-8 text-white" />
+          </div>
+          <p className="text-xl mb-4">Verification successful! Redirecting...</p>
         </div>
       </div>
     );
