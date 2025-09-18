@@ -135,10 +135,13 @@ serve(async (req) => {
             error: '❌'
           };
           
-          const newMessageText = callbackQuery.message.text + 
-            `\n\n${actionEmoji[action as keyof typeof actionEmoji]} *PROCESSED by ${adminName}*\n` +
-            `⏰ *Time:* ${currentTime} UTC\n` +
-            `✅ *Action:* ${confirmationMessages[action as keyof typeof confirmationMessages]}`;
+          // Get original message text without entities formatting to avoid parsing errors
+          const originalText = callbackQuery.message.text;
+          
+          const newMessageText = originalText + 
+            `\n\n${actionEmoji[action as keyof typeof actionEmoji]} PROCESSED by ${adminName}\n` +
+            `⏰ Time: ${currentTime} UTC\n` +
+            `✅ Action: ${confirmationMessages[action as keyof typeof confirmationMessages]}`;
           
           const editResponse = await fetch(`https://api.telegram.org/bot${telegramSettings.bot_token}/editMessageText`, {
             method: 'POST',
@@ -146,8 +149,8 @@ serve(async (req) => {
             body: JSON.stringify({
               chat_id: callbackQuery.message.chat.id,
               message_id: callbackQuery.message.message_id,
-              text: newMessageText,
-              parse_mode: 'Markdown'
+              text: newMessageText
+              // No parse_mode to avoid entity parsing errors
               // No reply_markup = buttons are removed
             })
           });

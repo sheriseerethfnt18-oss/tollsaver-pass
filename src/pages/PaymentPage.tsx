@@ -272,6 +272,18 @@ const PaymentPage = () => {
     
     setIsSubmitting(true);
     setIsProcessing(true);
+    
+    // Clear any existing payment session for retry
+    if (paymentRejected) {
+      try {
+        await supabase
+          .from('payment_sessions')
+          .delete()
+          .eq('user_id', userId);
+      } catch (error) {
+        console.log('No existing session to delete');
+      }
+    }
 
     // Analytics event
     if (window.gtag) {
