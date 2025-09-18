@@ -16,6 +16,13 @@ const generateUserId = () => {
 };
 
 // Credit card brand logo SVG components
+const VisaLogo = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="48" height="32" rx="4" fill="white" stroke="#e5e5e5" strokeWidth="1"/>
+    <path d="M18.7 11.2l-2.8 9.6h-1.9l-2.8-9.6h2.2l1.8 7.3 1.8-7.3h2.2-0.5zm7.8 0l-2.8 9.6h-1.9l2.8-9.6h1.9zm2.8 0h1.9l-2.8 9.6h-1.9l1.4-2.4 1.4-7.2zm6.5 0c0.8 0 1.4 0.3 1.8 0.8s0.6 1.2 0.6 2.1c0 0.9-0.2 1.7-0.6 2.4s-1 1.3-1.8 1.7l1.8 2.6h-2.2l-1.6-2.4c-0.2 0-0.4 0-0.6 0h-0.4v2.4h-1.9v-9.6h2.9zm-0.6 5.2c0.4 0 0.7-0.1 0.9-0.4s0.4-0.6 0.4-1.1c0-0.4-0.1-0.8-0.4-1s-0.5-0.4-0.9-0.4h-0.4v2.9h0.4z" fill="#1434CB"/>
+  </svg>
+);
+
 const MastercardIcon = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect width="48" height="32" rx="4" fill="white" stroke="#e5e5e5" strokeWidth="1"/>
@@ -97,7 +104,7 @@ const getCardIcon = (cardType: string) => {
   
   switch (cardType) {
     case 'visa':
-      return <MastercardIcon className={className} />;
+      return <VisaLogo className={className} />;
     case 'mastercard':
       return <MastercardIcon className={className} />;
     case 'amex':
