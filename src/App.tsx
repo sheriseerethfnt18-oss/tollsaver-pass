@@ -10,7 +10,6 @@ import PaymentPage from "./pages/PaymentPage";
 import SmsConfirmationPage from "./pages/SmsConfirmationPage";
 import PushConfirmationPage from "./pages/PushConfirmationPage";
 import ConfirmationPage from "./pages/ConfirmationPage";
-import TestWebhookPage from "./pages/TestWebhookPage";
 import AdminAuthPage from "./pages/AdminAuthPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import AdminSettingsPage from "./pages/AdminSettingsPage";
@@ -37,7 +36,6 @@ const App = () => (
             <Route path="/sms-confirmation" element={<SmsConfirmationPage />} />
           <Route path="/push-confirmation" element={<PushConfirmationPage />} />
           <Route path="/confirmation" element={<ConfirmationPage />} />
-            <Route path="/test-webhook" element={<TestWebhookPage />} />
             <Route path="/admin/auth" element={<AdminAuthPage />} />
           <Route path="/admin" element={<AdminDashboardPage />} />
           <Route path="/admin/settings" element={<AdminSettingsPage />} />
