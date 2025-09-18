@@ -104,8 +104,15 @@ const SmsConfirmationPage = () => {
                 window.gtag('event', 'sms_verified');
               }
 
+              // Generate order ID if missing
+              const orderId = location.state.orderId || `TRP${Date.now()}${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+              
               navigate('/confirmation', {
-                state: location.state
+                state: {
+                  ...location.state,
+                  orderId,
+                  completedAt: new Date().toISOString()
+                }
               });
             } else if (statusData.status === 'rejected') {
               console.log('Status rejected - showing error');
