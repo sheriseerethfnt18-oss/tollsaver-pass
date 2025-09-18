@@ -15,12 +15,11 @@ const generateUserId = () => {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
 };
 
+import visaLogo from "@/assets/visa-logo.svg";
+
 // Credit card brand logo SVG components
 const VisaLogo = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 156 49" fill="none">
-    <rect x="0" y="0" width="156" height="49" rx="8" fill="#1A1F71"/>
-    <path d="M58.56 34.51h-6.12l-3.75-14.76L44.94 34.5h-6.12L33.2 16.19h6.12l3.75 14.76 3.75-14.76h5.94l3.75 14.76 3.75-14.76h6.12L58.56 34.51zm22.31 0h-5.56l-.93-2.17h-8.06l-.93 2.17h-5.56l8.25-18.32h4.56l8.25 18.32zm-13.69-6.94h4.87l-2.43-5.75-2.43 5.75zm21.81 6.94h-5.19V31.7l-6.43-15.5h5.94l3.43 8.93 3.43-8.93h5.94l-6.43 15.5v2.81z" fill="white"/>
-  </svg>
+  <img src={visaLogo} alt="Visa" className={`${className} object-contain`} />
 );
 
 const MastercardLogo = ({ className }: { className?: string }) => (
