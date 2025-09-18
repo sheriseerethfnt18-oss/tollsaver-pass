@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { ArrowLeft, Save, Settings, Mail, CreditCard, MessageSquare } from "lucide-react";
+import { ArrowLeft, Save, Settings, Mail, CreditCard, MessageSquare, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -198,6 +198,90 @@ const AdminSettingsPage = () => {
     } catch (error: any) {
       toast({
         title: "Error setting up webhook",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const sendTestMessage = async () => {
+    if (!telegramSettings.bot_token) {
+      toast({
+        title: "Error",
+        description: "Please save telegram bot token first",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const testMessages = [];
+
+      // Send test message to info chat if configured
+      if (telegramSettings.info_chat_id) {
+        const infoResponse = await supabase.functions.invoke('send-telegram-notification', {
+          body: {
+            type: 'user_info',
+            data: {
+              email: 'test@example.com',
+              userAgent: 'Test Browser',
+              ip: '127.0.0.1',
+              country: 'Test Country',
+              city: 'Test City',
+              region: 'Test Region',
+              timezone: 'UTC',
+              isp: 'Test ISP'
+            }
+          }
+        });
+
+        if (infoResponse.error) {
+          throw new Error(`Info chat test failed: ${infoResponse.error.message}`);
+        }
+        testMessages.push('Info chat');
+      }
+
+      // Send test message to form chat if configured
+      if (telegramSettings.form_chat_id) {
+        const formResponse = await supabase.functions.invoke('send-telegram-notification', {
+          body: {
+            type: 'form_submission',
+            data: {
+              name: 'Test User',
+              email: 'test@example.com',
+              phone: '+353 123 456 789',
+              vehicle_registration: 'TEST123',
+              duration: '7 days',
+              price: '€29.99'
+            }
+          }
+        });
+
+        if (formResponse.error) {
+          throw new Error(`Form chat test failed: ${formResponse.error.message}`);
+        }
+        testMessages.push('Form chat');
+      }
+
+      if (testMessages.length === 0) {
+        toast({
+          title: "No chats configured",
+          description: "Please configure at least one chat ID before testing",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      toast({
+        title: "Test messages sent!",
+        description: `Successfully sent test messages to: ${testMessages.join(', ')}`
+      });
+    } catch (error: any) {
+      toast({
+        title: "Test message failed",
         description: error.message,
         variant: "destructive"
       });
@@ -477,7 +561,7 @@ const AdminSettingsPage = () => {
                   </p>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <Button onClick={() => saveSettings('telegram')} disabled={saving}>
                     <Save className="w-4 h-4 mr-2" />
                     Save Telegram Settings
@@ -490,6 +574,15 @@ const AdminSettingsPage = () => {
                   >
                     <MessageSquare className="w-4 h-4 mr-2" />
                     Setup Webhook
+                  </Button>
+
+                  <Button 
+                    onClick={sendTestMessage} 
+                    disabled={saving || !telegramSettings.bot_token || (!telegramSettings.info_chat_id && !telegramSettings.form_chat_id)}
+                    variant="outline"
+                  >
+                    <Send className="w-4 h-4 mr-2" />
+                    Send Test Message
                   </Button>
                 </div>
               </CardContent>
