@@ -287,21 +287,13 @@ const HomePage = () => {
                 </div>
                 
                 {!vehicleFound ? (
-                  <div className="flex gap-3">
-                    <Button 
-                      onClick={handleVehicleLookup}
-                      disabled={!vehicleReg || isLoading}
-                      className="btn-irish flex-1 text-lg py-4"
-                    >
-                      {isLoading ? "Finding Vehicle..." : "Find My Vehicle"}
-                    </Button>
-                    <Button 
-                      className="btn-irish px-8 text-lg py-4" 
-                      asChild
-                    >
-                      <Link to="/duration">Get Pass</Link>
-                    </Button>
-                  </div>
+                  <Button 
+                    onClick={handleVehicleLookup}
+                    disabled={!vehicleReg || isLoading}
+                    className="btn-irish w-full text-lg py-4"
+                  >
+                    {isLoading ? "Finding Vehicle..." : "Find My Vehicle"}
+                  </Button>
                 ) : (
                   <div className="space-y-4">
                     <div className="flex items-center space-x-2 mb-4">

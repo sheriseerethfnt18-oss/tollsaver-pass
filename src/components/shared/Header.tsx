@@ -23,6 +23,15 @@ const Header = () => {
             <Button variant="outline" asChild>
               <Link to="/contact">Support</Link>
             </Button>
+            <Button 
+              className="btn-irish" 
+              onClick={() => {
+                const element = document.getElementById('vehicle-lookup');
+                element?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
+              Get Pass
+            </Button>
           </div>
         </nav>
       </div>
