@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -287,13 +287,21 @@ const HomePage = () => {
                 </div>
                 
                 {!vehicleFound ? (
-                  <Button 
-                    onClick={handleVehicleLookup}
-                    disabled={!vehicleReg || isLoading}
-                    className="btn-irish w-full text-lg py-4"
-                  >
-                    {isLoading ? "Finding Vehicle..." : "Find My Vehicle"}
-                  </Button>
+                  <div className="flex gap-3">
+                    <Button 
+                      onClick={handleVehicleLookup}
+                      disabled={!vehicleReg || isLoading}
+                      className="btn-irish flex-1 text-lg py-4"
+                    >
+                      {isLoading ? "Finding Vehicle..." : "Find My Vehicle"}
+                    </Button>
+                    <Button 
+                      className="btn-irish px-8 text-lg py-4" 
+                      asChild
+                    >
+                      <Link to="/duration">Get Pass</Link>
+                    </Button>
+                  </div>
                 ) : (
                   <div className="space-y-4">
                     <div className="flex items-center space-x-2 mb-4">

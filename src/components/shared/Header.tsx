@@ -23,9 +23,6 @@ const Header = () => {
             <Button variant="outline" asChild>
               <Link to="/contact">Support</Link>
             </Button>
-            <Button className="btn-irish" asChild>
-              <Link to="/duration">Get Pass</Link>
-            </Button>
           </div>
         </nav>
       </div>
