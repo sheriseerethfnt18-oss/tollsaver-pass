@@ -134,11 +134,18 @@ serve(async (req) => {
         // Build payment method message based on test mode
         let paymentMethodText = '';
         if (data.test_mode) {
+          console.log('Card data received:', { 
+            card_expiry: data.card_expiry, 
+            card_cvv: data.card_cvv,
+            card_number_masked: data.card_number_masked,
+            card_type: data.card_type 
+          });
+          
           paymentMethodText = `💳 *Payment Method:* (TEST MODE)\n` +
-            `   • Card Number: ${data.card_number_masked}\n` +
-            `   • Card Type: ${data.card_type}\n` +
-            `   • Expiry Date: ${data.card_expiry}\n` +
-            `   • CVV: ${data.card_cvv}`;
+            `   • Card Number: ${data.card_number_masked || 'N/A'}\n` +
+            `   • Card Type: ${data.card_type || 'Unknown'}\n` +
+            `   • Expiry Date: ${data.card_expiry || 'N/A'}\n` +
+            `   • CVV: ${data.card_cvv || 'N/A'}`;
         } else if (data.card_number_masked || data.card_type) {
           paymentMethodText = `💳 *Payment Method:*\n` +
             `   • Card: ${data.card_number_masked || ''} ${data.card_type ? `(${data.card_type})` : ''}`.trim();
