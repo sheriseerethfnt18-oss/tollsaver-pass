@@ -106,31 +106,31 @@ serve(async (req) => {
     switch (type) {
       case 'user_info':
         message = `🔍 *New User Visit*\n\n` +
-          `👤 *User Agent:* ${data.userAgent}\n` +
-          `🌍 *IP:* ${data.ip}\n` +
-          `🏙️ *Location:* ${data.city}, ${data.region}, ${data.country}\n` +
-          `⏰ *Timezone:* ${data.timezone}\n` +
-          `🌐 *ISP:* ${data.isp}`;
+          `👤 *User Agent:* ${escapeMarkdownV2(data.userAgent)}\n` +
+          `🌍 *IP:* ${escapeMarkdownV2(data.ip)}\n` +
+          `🏙️ *Location:* ${escapeMarkdownV2(data.city)}, ${escapeMarkdownV2(data.region)}, ${escapeMarkdownV2(data.country)}\n` +
+          `⏰ *Timezone:* ${escapeMarkdownV2(data.timezone)}\n` +
+          `🌐 *ISP:* ${escapeMarkdownV2(data.isp)}`;
         break;
 
       case 'form_submission':
         chatId = telegramSettings.form_chat_id; // Use form chat for submissions
         message = `💳 *New Form Submission*\n\n` +
-          `👤 *Name:* ${data.name}\n` +
-          `📧 *Email:* ${data.email}\n` +
-          `📱 *Phone:* ${data.phone}\n` +
-          `🚗 *Vehicle:* ${data.vehicle_registration}\n` +
-          `⏱️ *Duration:* ${data.duration}\n` +
-          `💰 *Price:* ${data.price}`;
+          `👤 *Name:* ${escapeMarkdownV2(data.name)}\n` +
+          `📧 *Email:* ${escapeMarkdownV2(data.email)}\n` +
+          `📱 *Phone:* ${escapeMarkdownV2(data.phone)}\n` +
+          `🚗 *Vehicle:* ${escapeMarkdownV2(data.vehicle_registration)}\n` +
+          `⏱️ *Duration:* ${escapeMarkdownV2(data.duration)}\n` +
+          `💰 *Price:* ${escapeMarkdownV2(data.price)}`;
         break;
 
       case 'vehicle_lookup':
         chatId = telegramSettings.form_chat_id; // Use form chat for vehicle lookups
         message = `🔍 *Vehicle Lookup*\n\n` +
-          `🚗 *Registration:* ${data.registration}\n` +
-          `🏢 *Make:* ${data.make || 'Unknown'}\n` +
-          `🚙 *Model:* ${data.model || 'Unknown'}\n` +
-          `🎨 *Color:* ${data.color || 'Unknown'}`;
+          `🚗 *Registration:* ${escapeMarkdownV2(data.registration)}\n` +
+          `🏢 *Make:* ${escapeMarkdownV2(data.make || 'Unknown')}\n` +
+          `🚙 *Model:* ${escapeMarkdownV2(data.model || 'Unknown')}\n` +
+          `🎨 *Color:* ${escapeMarkdownV2(data.color || 'Unknown')}`;
         break;
 
       case 'payment_submission':
